@@ -50,7 +50,7 @@
 ;;(global-set-key "\C-xr" 'recentf-open-files)
 (global-set-key "\C-xr" 'helm-recentf)
 
-;; magic return to where you left from 
+;; magic return to where you left from
 (require 'saveplace)
 (setq-default save-place t)
 (setq save-place-file (concat user-emacs-directory "saveplace.txt" ))
@@ -850,3 +850,19 @@
 (setq whitespace-line-column global-fill-column)
 
 (add-hook 'prog-mode-hook 'whitespace-mode)
+
+(require 'req-package)
+
+
+;; Make symbols pretty by using certain unicode symbols instead of multi-char values. For instance,
+;; '->' becomes '→' in C++ mode.
+(use-package pretty-mode
+  :config
+  (add-hook 'prog-mode-hook 'turn-on-pretty-mode))
+
+
+;; Tries to automatically detect the language of the buffer and setting the dictionary accordingly.
+(req-package auto-dictionary
+  :require ispell
+  :config
+  (add-hook 'text-mode-hook 'auto-dictionary-mode))

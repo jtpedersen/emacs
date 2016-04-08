@@ -1,0 +1,5 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: qcritical
+# key: qc
+# --
+qCritical() << "${1:$0}";

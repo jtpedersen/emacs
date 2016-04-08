@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: expect false
+# key: EF
+# --
+EXPECT_FALSE(${1:val1}) << ${2:errorStream};
+$0

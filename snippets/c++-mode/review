@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: review
+# key: r
+# binding: direct-keybinding
+# --
+//REVIEW JTP `(format-time-string "<%Y-%m-%d>" (current-time))`: $0

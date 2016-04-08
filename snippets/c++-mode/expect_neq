@@ -1,0 +1,6 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: expect equeal
+# key: EN
+# --
+EXPECT_NE(${1:val1}, ${2:val2}) << ${3:errorStream};
+$0

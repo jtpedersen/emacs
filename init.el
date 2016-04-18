@@ -617,8 +617,6 @@
 
 (define-key global-map "\C-ca" 'org-agenda)
 (setq org-log-done t)
-
-;;TODO(t) STARTED(s) WAITING(w) APPT(a) | DONE(d) CANCELLED(c) DEFERRED(f)
 (setq org-todo-keywords (quote (
 				(sequence "TODO(t)" "STARTED(s)" "WAITING(w)" "APPT(a)" "|" "DONE(d)" "CANCELLED(c)" "DEFERRED(f)"))))
 
@@ -635,7 +633,6 @@
 ;; writing hooks
 (add-hook 'org-mode-hook 'auto-fill-mode t)
 (add-hook 'org-mode-hook 'flyspell-mode t)
-
 
 ;; babel
 (org-babel-do-load-languages
@@ -654,7 +651,6 @@
 
 
 ;;;;;;; Mulitple cursors
-
 (require 'multiple-cursors)
 (global-set-key (kbd "C->") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
@@ -687,7 +683,7 @@
 (global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "M-y") 'helm-show-kill-ring)
 (global-set-key (kbd "C-x b") 'helm-mini)
-(global-set-key (kbd "C-x C-f") 'helm-find-files)
+
 ;; ;; multiple replace
 ;; (require 'iedit)
 
@@ -826,6 +822,7 @@
 
 (setq compilation-window-height 30
       compilation-scroll-output 'first-error
+      compilation-skip-threshold 2 ; skip accros warnings
       compilation-always-kill t) ;; Don't ask, just start new compilation.
 
 
@@ -866,3 +863,52 @@
   :require ispell
   :config
   (add-hook 'text-mode-hook 'auto-dictionary-mode))
+
+(req-package flx-ido
+  :require flx
+  :config
+  (ido-mode 1)
+  (ido-everywhere 1)
+  (flx-ido-mode 1)
+
+  ;; Disable ido faces to see flx highlights.
+  (setq ido-enable-flex-matching t)
+(setq ido-use-faces nil))
+
+(req-package helm-flx
+  :require (helm flx)
+  :config
+  ;; Use flx for better search results.
+  (helm-flx-mode +1))
+
+
+(require 'keyfreq)
+(keyfreq-mode 1)
+(keyfreq-autosave-mode 1)
+
+
+;; (req-package projectile
+;;   :init
+;;   (setq projectile-keymap-prefix (kbd "C-x p"))
+;;   (setq projectile-mode-line "ρ")
+;;   (setq projectile-enable-caching t)
+;;   :config
+;;   (projectile-global-mode))
+
+;; (req-package helm-projectile
+;;   :require projectile
+;;   :config
+;;   (setq helm-projectile-fuzzy-match t)
+;;   (setq projectile-switch-project-action 'helm-projectile-find-file)
+
+;;   ;; Use helm-projectile alternatives.
+;;   (define-key projectile-mode-map
+;;     (kbd (concat projectile-keymap-prefix "f")) 'helm-projectile-find-file)
+;;   (define-key projectile-mode-map
+;;     (kbd (concat projectile-keymap-prefix "d")) 'helm-projectile-find-dir)
+;;   (define-key projectile-mode-map
+;;     (kbd (concat projectile-keymap-prefix "o")) 'helm-projectile-find-other-file)
+;;   (define-key projectile-mode-map
+;;     (kbd (concat projectile-keymap-prefix "a")) 'helm-projectile-ag)
+;;   (define-key projectile-mode-map
+;;     (kbd (concat projectile-keymap-prefix "p")) 'helm-projectile-switch-project))

@@ -1,31 +1,13 @@
-;; ------------------------
-;;   Emacs Configurations
-;; ------------------------
+;;COMMON CONFIGURATIONS
 
-;; inspired by Slot Kristensen
-;;
-;; I got inspiration to some of the tweaks elsewhere. One of those are
-;; Ian Zerny. If I have wrongfully forgotten to give credit to the
-;; original source of something please do inform me of the mistake.
-;;
-;; This file is free software. You may redistribute it and/or modify
-;; it under the terms of the GNU General Public License, version 2 or
-;; later as published by the Free Software Foundation.
-;;
-;; The file is distributed AS IS and WITHOUT ANY WARRANTY. I hope you
-;; will find it useful and I welcome feedback and
-;; modifications/improvements.
-
-;;;;;;;;; COMMON CONFIGURATIONS
-
-(show-paren-mode t)                     ;; show matching parenthesis
-(column-number-mode t)                  ;; show current column
-(menu-bar-mode -1)                      ;; don't show menu-bar
-(tool-bar-mode -1)                      ;; same for the toolbar
-(scroll-bar-mode -1)                    ;; .. and for the scrollbar
-(put 'scroll-left 'disabled nil)        ; scroll left
-(setq inhibit-startup-message t)        ;; dont show the GNU splash screen
-(transient-mark-mode t)                 ;; show selection from mark
+(show-paren-mode t)			;; show matching parenthesis
+(column-number-mode t)			;; show current column
+(menu-bar-mode -1)			;; don't show menu-bar
+(tool-bar-mode -1)			;; same for the toolbar
+(scroll-bar-mode -1)			;; .. and for the scrollbar
+(put 'scroll-left 'disabled nil)        ;scroll left
+(setq inhibit-startup-message t)	;;dont show the GNU splash screen
+(transient-mark-mode t)			;; show selection from mark
 (mouse-avoidance-mode 'jump)            ;; jump mouse away when typing
 (setq visible-bell nil)                 ;; turn off bip warnings
 (auto-compression-mode t)               ;; browse tar archives
@@ -715,14 +697,6 @@
 (add-to-list 'sml/replacer-regexp-list '("^~/luxion" ":Luxion:") t)
 
 
-;;yas/text
-(require 'yasnippet)
-(defconst yas-dir (concat user-emacs-directory "snippets"))
-(add-to-list 'yas-snippet-dirs yas-dir)
-
-(yas-global-mode 1)
-
-
 
 (setq magit-last-seen-setup-instructions "1.4.0")
 (setq magit-auto-revert-mode nil) ;; Do not auto-revert!
@@ -851,13 +825,6 @@
 (require 'req-package)
 
 
-;; Make symbols pretty by using certain unicode symbols instead of multi-char values. For instance,
-;; '->' becomes '→' in C++ mode.
-(use-package pretty-mode
-  :config
-  (add-hook 'prog-mode-hook 'turn-on-pretty-mode))
-
-
 ;; Tries to automatically detect the language of the buffer and setting the dictionary accordingly.
 (req-package auto-dictionary
   :require ispell
@@ -886,29 +853,98 @@
 (keyfreq-mode 1)
 (keyfreq-autosave-mode 1)
 
+(req-package projectile
+  :init
+  (setq projectile-keymap-prefix (kbd "C-x p"))
+  (setq projectile-mode-line "ρ")
+  (setq projectile-enable-caching t)
+  :config
+  (projectile-global-mode))
 
-;; (req-package projectile
-;;   :init
-;;   (setq projectile-keymap-prefix (kbd "C-x p"))
-;;   (setq projectile-mode-line "ρ")
-;;   (setq projectile-enable-caching t)
-;;   :config
-;;   (projectile-global-mode))
+(req-package helm-projectile
+  :require projectile
+  :config
+  (setq helm-projectile-fuzzy-match t)
+  (setq projectile-switch-project-action 'helm-projectile-find-file)
 
-;; (req-package helm-projectile
-;;   :require projectile
-;;   :config
-;;   (setq helm-projectile-fuzzy-match t)
-;;   (setq projectile-switch-project-action 'helm-projectile-find-file)
+  ;; Use helm-projectile alternatives.
+  (define-key projectile-mode-map
+    (kbd (concat projectile-keymap-prefix "f")) 'helm-projectile-find-file)
+  (define-key projectile-mode-map
+    (kbd (concat projectile-keymap-prefix "d")) 'helm-projectile-find-dir)
+  (define-key projectile-mode-map
+    (kbd (concat projectile-keymap-prefix "o")) 'helm-projectile-find-other-file)
+  (define-key projectile-mode-map
+    (kbd (concat projectile-keymap-prefix "a")) 'helm-projectile-ag)
+  (define-key projectile-mode-map
+    (kbd (concat projectile-keymap-prefix "p")) 'helm-projectile-switch-project)
+  (define-key projectile-mode-map
+    (kbd (concat projectile-keymap-prefix "b")) 'helm-projectile-switch-to-buffer))
 
-;;   ;; Use helm-projectile alternatives.
-;;   (define-key projectile-mode-map
-;;     (kbd (concat projectile-keymap-prefix "f")) 'helm-projectile-find-file)
-;;   (define-key projectile-mode-map
-;;     (kbd (concat projectile-keymap-prefix "d")) 'helm-projectile-find-dir)
-;;   (define-key projectile-mode-map
-;;     (kbd (concat projectile-keymap-prefix "o")) 'helm-projectile-find-other-file)
-;;   (define-key projectile-mode-map
-;;     (kbd (concat projectile-keymap-prefix "a")) 'helm-projectile-ag)
-;;   (define-key projectile-mode-map
-;;     (kbd (concat projectile-keymap-prefix "p")) 'helm-projectile-switch-project))
+
+(defconst yas-dir (concat user-emacs-directory "snippets"))
+
+(req-package yasnippet
+;;  :require helm
+  :config
+  ;; Add local snippets to override some of the defaults in elpa folder.
+  (add-to-list 'yas-snippet-dirs yas-dir)
+
+  ;; (setq yas-prompt-functions
+  ;;       '(yas-ido-prompt yas-dropdown-prompt yas-completing-prompt yas-x-prompt yas-no-prompt))
+
+  ;; (defun shk-yas/helm-prompt (prompt choices &optional display-fn)
+  ;;   "Use helm to select a snippet. Put this into `yas/prompt-functions.'"
+  ;;   (interactive)
+  ;;   (setq display-fn (or display-fn 'identity))
+  ;;   (if (require 'helm-config)
+  ;;       (let (tmpsource cands result rmap)
+  ;;         (setq cands (mapcar (lambda (x) (funcall display-fn x)) choices))
+  ;;         (setq rmap (mapcar (lambda (x) (cons (funcall display-fn x) x)) choices))
+  ;;         (setq tmpsource
+  ;;               (list
+  ;;                (cons 'name prompt)
+  ;;                (cons 'candidates cands)
+  ;;                '(action . (("Expand" . (lambda (selection) selection))))
+  ;;                ))
+  ;;         (setq result (helm-other-buffer '(tmpsource) "*helm-select-yasnippet"))
+  ;;         (if (null result)
+  ;;             (signal 'quit "user quit!")
+  ;;           (cdr (assoc result rmap))))
+  ;;     nil))
+  ;; (add-to-list 'yas-prompt-functions 'shk-yas/helm-prompt)
+
+  (yas-global-mode 1)
+
+  ;; Test if thing at cursor can expand with yas, if it can then change the color of the cursor.
+  (setq default-cursor-color (face-background 'cursor))
+  (setq yasnippet-can-fire-cursor-color "#4CB5F5")
+
+  (defun yasnippet-can-fire-p (&optional field)
+    (interactive)
+    (setq yas--condition-cache-timestamp (current-time))
+    (let (templates-and-pos)
+      (unless (and yas-expand-only-for-last-commands
+                   (not (member last-command yas-expand-only-for-last-commands)))
+        (setq templates-and-pos (if field
+                                    (save-restriction
+                                      (narrow-to-region (yas--field-start field)
+                                                        (yas--field-end field))
+                                      (yas--templates-for-key-at-point))
+                                  (yas--templates-for-key-at-point))))
+      (and templates-and-pos (first templates-and-pos))))
+
+  (defun my/change-cursor-color-when-can-expand (&optional field)
+    (interactive)
+    (when (eq last-command 'self-insert-command)
+      (set-cursor-color (if (my/can-expand)
+                            yasnippet-can-fire-cursor-color
+                          default-cursor-color))))
+
+  (defun my/can-expand ()
+    "Return true if right after an expandable thing."
+    (or (abbrev--before-point) (yasnippet-can-fire-p)))
+
+  (add-hook 'post-command-hook 'my/change-cursor-color-when-can-expand))
+
+(req-package-finish)

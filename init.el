@@ -15,6 +15,12 @@
 (global-font-lock-mode t)               ;; syntax highlight
 (setq-default indent-tabs-mode nil)     ;; use spaces instead of tabs
 (fset 'yes-or-no-p 'y-or-n-p)           ;; use 'y' instead of 'yes' etc.
+(size-indication-mode t)             ;; Show current buffer size
+
+
+;; Garbage collect at every 20 MB allocated instead of the default 8 MB. This
+;; speeds up various things.
+(setq gc-cons-threshold 20000000)
 
 ;;a clock
 (setq display-time-day-and-date t)
@@ -120,15 +126,15 @@
 
 ;;;;;;;;; CUSTOM KEYBINDINGS
 
-(global-set-key (kbd "C-s") 'isearch-forward-regexp)
-(global-set-key (kbd "C-M-s") 'isearch-forward)
-(global-set-key (kbd "C-r") 'isearch-backward-regexp)
-(global-set-key (kbd "C-M-r") 'isearch-backward)
-(global-set-key (kbd "M-n") 'scroll-up-one-line)
-(global-set-key (kbd "M-p") 'scroll-down-one-line)
-(global-set-key (kbd "M-P") 'previous-user-buffer) 
-(global-set-key (kbd "M-N") 'next-user-buffer) 
-                                        ;(global-set-key (kbd "M-ƒ") 'open-with-finder) ; Command+Option+f
+;; (global-set-key (kbd "C-s") 'isearch-forward-regexp)
+;; (global-set-key (kbd "C-M-s") 'isearch-forward)
+;; (global-set-key (kbd "C-r") 'isearch-backward-regexp)
+;; (global-set-key (kbd "C-M-r") 'isearch-backward)
+;; (global-set-key (kbd "M-n") 'scroll-up-one-line)
+;; (global-set-key (kbd "M-p") 'scroll-down-one-line)
+;; (global-set-key (kbd "M-P") 'previous-user-buffer) 
+;; (global-set-key (kbd "M-N") 'next-user-buffer) 
+;;                                         ;(global-set-key (kbd "M-ƒ") 'open-with-finder) ; Command+Option+f
 
 (global-set-key (kbd "C-c o") 'ff-find-other-file)
 
@@ -144,16 +150,11 @@
 
 
 (global-set-key [(C-f5)] 'compile)
-
 (global-set-key [(f5)] 'recompile)
 (global-set-key [(f6)] 'next-error)
 (global-set-key [(C-f6)] 'next-error-skip-warnings)
 ;; Compilation output
 (setq compilation-scroll-output t)
-
-(setq compile-command "source ~/.bashrc &&  cd ~/luxion/build/debug && ninja && ctest -L fast -j 8 --output-on-failure")
-
-
 
 ;; windows endlines
 (defun remove-dos-eol ()
@@ -173,61 +174,6 @@
   (progn
     (set-buffer-file-coding-system 'unix) ; or 'mac or 'dos
     (save-buffer)))
-
-(defun open-with-finder ()
-  "Show current buffer-file, or directory if in Dired-mode, in
-  Finder (OSX specific)."
-  (interactive)
-  (if (eq 'dired-mode major-mode)
-      (shell-command "open .")
-    (shell-command (concat "open -R '" (concat buffer-file-name "'")))))
-
-;; goto next user buffer (no *Messages*, *eshell* etc.)
-(defun next-user-buffer ()
-  "Switch to next buffer in cyclic order. User buffers are those
-  not starting with *."
-  (interactive)
-  (next-buffer)
-  (let ((i 0))
-    (while (and (string-match "^*" (buffer-name))
-                (< i 50)) ; we need to have some maximum..
-      (setq i (1+ i))
-      (next-buffer))))
-
-;; goto previous user buffer (no *Messages*, *eshell* etc.)
-(defun previous-user-buffer ()
-  "Switch to previous buffer in cyclic order. User buffers are
-  those not starting with *."
-  (interactive)
-  (previous-buffer)
-  (let ((i 0))
-    (while (and (string-match "^*" (buffer-name))
-                (< i 50)) ; we need to have some maximum..
-      (setq i (1+ i))
-      (previous-buffer))))
-
-;; Reload the .emacs conf-file
-(defun reload-conf ()
-  "Reloads ~/.emacs"
-  (interactive)
-  (load-file "~/.emacs"))
-
-;; Opens (finds) .emacs in another buffer
-(defun open-conf () 
-  "Opens ~/.emacs for editing"
-  (interactive)
-  (find-file-other-window "~/.emacs"))
-
-;; Scroll one line up / down
-(defun scroll-down-one-line ()
-  "Scrolls down one line"
-  (interactive)
-  (scroll-down 2))
-
-(defun scroll-up-one-line ()
-  "Scrolls up one line"
-  (interactive)
-  (scroll-up 2))
 
 ;; Set exec path to be the same as the one from the shell
 (defun set-exec-path-from-shell-path()
@@ -435,64 +381,10 @@
 (add-to-list 'auto-mode-alist '("access\\.conf\\'" . apache-mode))
 (add-to-list 'auto-mode-alist '("sites-\\(available\\|enabled\\)/" . apache-mode))
 
-;;;;;;;;; XSL mode
-
-(autoload 'xsl-mode "xslide" "Major mode for XSL stylesheets." t)
-
-;; Turn on font lock when in XSL mode
-(add-hook 'xsl-mode-hook
-          'turn-on-font-lock)
-
-(setq auto-mode-alist
-      (append
-       (list
-        '("\\.fo" . xsl-mode)
-        '("\\.xsl" . xsl-mode))
-       auto-mode-alist))
-
-;;;;;;;;; DTD mode
-
-;; (autoload 'dtd-mode "tdtd" "Major mode for SGML and XML DTDs." t)
-;; (autoload 'dtd-etags "tdtd"
-;;   "Execute etags on FILESPEC and match on DTD-specific regular expressions."
-;;   t)
-;; (autoload 'dtd-grep "tdtd" "Grep for PATTERN in files matching FILESPEC." t)
-
-;; ;; Turn on font lock when in DTD mode
-;; (add-hook 'dtd-mode-hooks
-;;           'turn-on-font-lock)
-
-;; (setq auto-mode-alist
-;;       (append
-;;        (list
-;;         '("\\.dcl$" . dtd-mode)
-;;         '("\\.dec$" . dtd-mode)
-;;         '("\\.dtd$" . dtd-mode)
-;;         '("\\.ele$" . dtd-mode)
-;;         '("\\.ent$" . dtd-mode)
-;;         '("\\.mod$" . dtd-mode))
-;;        auto-mode-alist))
-
-;;;;;;;;; PHP-mode
-
-(autoload 'php-mode "php-mode" "Mode for editing PHP source files")
-(add-to-list 'auto-mode-alist '("\\.\\(inc\\|php[s34]?\\)" . php-mode))
-
 ;;;;;;;;; Python-mode
 
 (autoload 'python-mode "python-mode" "Mode for editing Python source files")
 (add-to-list 'auto-mode-alist '("\\.py" . python-mode))
-
-;;;;;;;;; svn-mode
-
-;; (require 'psvn)
-
-
-;;;;;;;;; MIX / MIXAL
-
-;; (autoload 'mixal-mode "mixal-mode" t)
-;; (add-to-list 'auto-mode-alist '("\\.mixal\\'" . mixal-mode))
-;; (autoload 'mixvm "mixvm" "mixvm/gud interaction" t)
 
 ;;;;;;;;; CMake
 

@@ -524,12 +524,19 @@
 ;; recentf
 (req-package recentf
   :config
-  (recentf-mode 1)
-  (add-to-list 'recentf-exclude "ido.last")
-  (add-to-list 'recentf-exclude ".*COMMIT_EDITMSG.*")
-  (add-to-list 'recentf-exclude ".*ede-projects.el")
-  (add-to-list 'recentf-exclude ".emacs.d/saveplace.txt")
-  (setq recentf-max-saved-items 100))
+  (setq recentf-max-saved-items 200
+        ;; Cleanup recent files only when Emacs is idle, but not when the mode
+        ;; is enabled, because that unnecessarily slows down Emacs. My Emacs
+        ;; idles often enough to have the recent files list clean up regularly
+        recentf-auto-cleanup 300
+        recentf-exclude (list "/\\.git/.*\\'" ; Git contents
+                              "/elpa/.*\\'"   ; Package files
+                              "/itsalltext/"  ; It's all text temp files
+                              ".*\\.gz\\'"
+                              "TAGS"
+                              ".emacs.d/saveplace.txt"
+                              ".*-autoloads\\.el\\'"))
+  (recentf-mode))
 
 (req-package helm-gtags
   :config
@@ -685,7 +692,6 @@
 (req-package highlight-current-line
   :config
   (setq highlight-current-line-globally t))
-
 
 (req-package diff-hl
   :require magit

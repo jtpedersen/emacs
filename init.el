@@ -27,28 +27,31 @@
 (setq display-time-24hr-format t)
 (display-time)
 
-;; recentf
-(recentf-mode 1)
-(add-to-list 'recentf-exclude "ido.last")
-(add-to-list 'recentf-exclude ".*COMMIT_EDITMSG.*")
-(add-to-list 'recentf-exclude ".*ede-projects.el")
-(add-to-list 'recentf-exclude ".emacs.d/saveplace.txt")
-(setq recentf-max-saved-items 100)
 
-;;(global-set-key "\C-xr" 'recentf-open-files)
-(global-set-key "\C-xr" 'helm-recentf)
+(add-to-list 'load-path "~/.emacs.d/lisp")
+
+;;;packages
+(require 'package)
+(add-to-list 'package-archives
+	     '("melpa" . "http://melpa.org/packages/") t)
+
+(package-initialize)
+
+(require 'req-package)
 
 ;; magic return to where you left from
-(require 'saveplace)
-(setq-default save-place t)
-(setq save-place-file (concat user-emacs-directory "saveplace.txt" ))
-
+(req-package saveplace
+  :config
+  (setq-default save-place t)
+  (setq save-place-file (concat user-emacs-directory "saveplace.txt" )))
 ;; Saves mini buffer history including search and kill ring values, and compile history.
-(setq savehist-additional-variables
-      '(search-ring regexp-search-ring kill-ring compile-history))
-(setq savehist-autosave-interval 60)
-(setq savehist-file (concat user-emacs-directory "savehist"))
-(savehist-mode t)
+(req-package savehist
+  :config
+  (setq savehist-additional-variables
+        '(search-ring regexp-search-ring kill-ring compile-history))
+  (setq savehist-autosave-interval 60)
+  (setq savehist-file (concat user-emacs-directory "savehist"))
+  (savehist-mode t))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -98,13 +101,6 @@
    nil 'fullscreen
    (when (not (frame-parameter nil 'fullscreen)) 'fullboth)))
 (global-set-key [(M-f10)] 'toggle-fullscreen)
-
-;;;packages
-(require 'package)
-(add-to-list 'package-archives
-	     '("melpa" . "http://melpa.org/packages/") t)
-
-(package-initialize)
 
 ;;;;;;;;; UTF-8 ENCODING
 
@@ -303,8 +299,11 @@
           (lambda ()
             (local-set-key (kbd "C-M-l") 'lux-wrap-function)
             (local-set-key (kbd "C-c l") 'lux-fix-buffer)))
-;;;;;;;;; EMAIL
 
+;; Regressor tst
+(add-to-list 'auto-mode-alist '(".tst" . conf-mode))
+
+;;;;;;;;; EMAIL
 (setq user-mail-address "jacob@luxion.com")
 
 ;;;;;;;;; IDO
@@ -386,13 +385,6 @@
 (autoload 'python-mode "python-mode" "Mode for editing Python source files")
 (add-to-list 'auto-mode-alist '("\\.py" . python-mode))
 
-;;;;;;;;; CMake
-
-(require 'cmake-mode)
-(setq auto-mode-alist
-      (append '(("CMakeLists\\.txt\\'" . cmake-mode)
-                ("\\.cmake\\'" . cmake-mode))
-              auto-mode-alist))
 
 ;;;;;;;;; JavaScript
 
@@ -433,24 +425,6 @@
       (newline))))
 
 ;; cppcheck --template='{file}:{line}:{severity}:{message}' --quiet <filename>
-
-
-
-;; Enable helm-gtags-mode
-(add-hook 'c-mode-hook 'helm-gtags-mode)
-(add-hook 'c++-mode-hook 'helm-gtags-mode)
-(add-hook 'asm-mode-hook 'helm-gtags-mode)
-
-;; Set key bindings
-(eval-after-load "helm-gtags"
-  '(progn
-     (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-find-tag)
-     (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
-     (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
-     (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
-     (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
-     (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
-     (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
 
 
 
@@ -518,116 +492,113 @@
 
 
 ;;magit
-;(require 'magit-svn)
-(require 'magit)
-(global-set-key "\C-xg" 'magit-status)
-(add-hook 'magit-mode-hook 'magit-load-config-extensions)
-
+(req-package magit
+  :config
+  (global-set-key "\C-xg" 'magit-status)
+  (add-hook 'magit-mode-hook 'magit-load-config-extensions)
+  ;; Set defaults used by specific operations.
+  (setq magit-merge-arguments '("--no-ff"))
+  (setq magit-pull-arguments '("--rebase"))
+  (setq magit-cherry-pick-arguments '("-x"))
+  (setq magit-auto-revert-mode nil))
 
 ;;;;;;; Mulitple cursors
-(require 'multiple-cursors)
-(global-set-key (kbd "C->") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+(req-package multiple-cursors
+  :config
+  (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this))
+
+;;;;;;;;;;;;; HELM
+
+(req-package helm
+  :require recentf
+  :config
+  (setq helm-recentf-fuzzy-match t)
+  (setq helm-ff-file-name-history-use-recentf t)
+  (global-set-key (kbd "M-x") 'helm-M-x)
+  (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+  (global-set-key (kbd "C-x b") 'helm-mini)
+  (global-set-key "\C-xr" 'helm-recentf))
+
+;; recentf
+(req-package recentf
+  :config
+  (recentf-mode 1)
+  (add-to-list 'recentf-exclude "ido.last")
+  (add-to-list 'recentf-exclude ".*COMMIT_EDITMSG.*")
+  (add-to-list 'recentf-exclude ".*ede-projects.el")
+  (add-to-list 'recentf-exclude ".emacs.d/saveplace.txt")
+  (setq recentf-max-saved-items 100))
+
+(req-package helm-gtags
+  :config
+  ;; Enable helm-gtags-mode
+  (add-hook 'c-mode-hook 'helm-gtags-mode)
+  (add-hook 'c++-mode-hook 'helm-gtags-mode)
+  (add-hook 'asm-mode-hook 'helm-gtags-mode)
+
+  ;; Set key bindings
+  (eval-after-load "helm-gtags"
+    '(progn
+       (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-find-tag)
+       (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
+       (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
+       (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
+       (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
+       (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
+       (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack))))
 
 
-;; terminal colors
-(require 'ansi-color)
-(defun colorize-compilation-buffer ()
-  (toggle-read-only)
-  (ansi-color-apply-on-region (point-min) (point-max))
-  (toggle-read-only))
-(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
-
-;; Ace-jump mode
-(autoload
-  'ace-jump-mode
-  "ace-jump-mode"
-  "Emacs quick move minor mode"
-  t)
-;; you can select the key you prefer to
-(define-key global-map (kbd "C-c SPC") 'ace-jump-mode)
-;; (require 'ace-jump-buffer)
-;; (global-set-key (kbd "C-x b") 'ace-jump-buffer)
-(require 'ace-isearch)
-(global-ace-isearch-mode +1)
-
-;(global-set-key (kbd "C-x b") 'helm-buffers-list)
-(global-set-key (kbd "M-x") 'helm-M-x)
-(global-set-key (kbd "M-y") 'helm-show-kill-ring)
-(global-set-key (kbd "C-x b") 'helm-mini)
-
-;; ;; multiple replace
-;; (require 'iedit)
-
-;; rainbows
-;(rainbow-mode 't)
 
 ;; ;; maya mel - mode
 (add-to-list 'auto-mode-alist '("\\.mel$" . c++-mode))
 
-;; ;;;  (setq mel-mode-document-base "/home/narazaki/Lib/Maya/html/ja_JP/")
-
 ;; fixme in comments
-(require 'fic-mode)
-(add-to-list 'fic-highlighted-words '("XXX"))
-(add-hook 'c++-mode-hook 'turn-on-fic-mode)
+(req-package fic-mode
+  :config
+  (add-to-list 'fic-highlighted-words '("XXX"))
+  (add-hook 'c++-mode-hook 'turn-on-fic-mode))
 
 ;; ala tail -f for log files
 (add-to-list 'auto-mode-alist '("\\.log\\'" . auto-revert-mode))
 
 
-(require 'uniquify)
-(setq uniquify-buffer-name-style 'forward)
+(req-package uniquify
+  :config
+  (setq uniquify-buffer-name-style 'forward))
 
-;; smart mode-line
-(sml/setup)
-(sml/apply-theme 'dark)
-(add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/keyshot_network" ":KS-NET:") t)
-(add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/" ":KS:") t)
-(add-to-list 'sml/replacer-regexp-list '("^~/luxion" ":Luxion:") t)
+(req-package smart-mode-line
+  :config
+  (sml/setup)
+  (sml/apply-theme 'dark)
+  (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/keyshot_network" ":KS-NET:") t)
+  (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/" ":KS:") t)
+  (add-to-list 'sml/replacer-regexp-list '("^~/luxion" ":Luxion:") t))
 
-
-
-(setq magit-last-seen-setup-instructions "1.4.0")
-(setq magit-auto-revert-mode nil) ;; Do not auto-revert!
-
-(require 'clang-format)
-(global-set-key [C-M-tab] 'clang-format-region)
-
-;; Regressor tst
-(add-to-list 'auto-mode-alist '(".tst" . conf-mode))
+(req-package clang-format
+  :config
+  (global-set-key [C-M-tab] 'clang-format-region))
 
 
-;; Window numbering
-(setq window-numbering-assign-func
-      (lambda () (when (equal (buffer-name) "*compilation*") 9)))
-(window-numbering-mode 't)
-;; Rainbows
-(add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
+(req-package  window-numbering
+  :config
+  (window-numbering-mode 't))
 
+(req-package discover-my-major
+  :config
+  (global-set-key (kbd "C-h C-m") 'discover-my-major)
+  (global-set-key (kbd "C-h M-m") 'discover-my-mode))
 
-(global-cwarn-mode 1)
+(req-package flycheck
+  :config
+  (add-hook 'after-init-hook #'global-flycheck-mode)
+  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11"))))
 
-
-(global-set-key (kbd "C-h C-m") 'discover-my-major)
-(global-set-key (kbd "C-h M-m") 'discover-my-mode)
-
-(add-hook 'after-init-hook #'global-flycheck-mode)
-
-(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
-
-
-;; Set defaults used by specific operations.
-(setq magit-merge-arguments '("--no-ff"))
-(setq magit-pull-arguments '("--rebase"))
-(setq magit-cherry-pick-arguments '("-x"))
-
-(add-to-list 'load-path "~/.emacs.d/lisp")
-(require 'devdocs-lookup)
-(devdocs-setup)
-(global-set-key "\C-cd" 'devdocs-lookup)
+;; (require 'devdocs-lookup)
+;; (devdocs-setup)
+;; (global-set-key "\C-cd" 'devdocs-lookup)
 
 ;; (add-hook 'c-mode-common-hook
 ;;           (lambda ()
@@ -681,31 +652,47 @@
 (global-set-key (kbd "C-0") 'text-scale-adjust)
 
 
+
+(req-package vlf
+  :config
+  (require 'vlf-setup)
+  (setq vlf-application 'dont-ask))
+
+;;;;; COMPILATION
 (setq compilation-scroll-output t)
-
-(require 'vlf-setup)
-(setq vlf-application 'dont-ask)
-
 (setq compilation-window-height 30
       compilation-scroll-output 'first-error
       compilation-skip-threshold 2 ; skip accros warnings
       compilation-always-kill t) ;; Don't ask, just start new compilation.
 
-
-(setq highlight-thing-delay-seconds 0.8)
-;(setq highlight-thing-limit-to-defun t) ;; Limit to current function.
-(setq highlight-thing-what-thing 'symbol)
-(setq highlight-thing-case-sensitive-p t)
-
-(add-hook 'prog-mode-hook 'highlight-thing-mode)
-
-(require 'highlight-current-line)
-(setq highlight-current-line-globally t)
+;; terminal colors
+(req-package ansi-color
+  :config
+  (defun colorize-compilation-buffer ()
+    (toggle-read-only)
+    (ansi-color-apply-on-region (point-min) (point-max))
+    (toggle-read-only))
+  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
 
 
-(require 'diff-hl)
-(add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
-(add-hook 'prog-mode-hook 'diff-hl-mode)
+(req-package highlight-thing
+  :config
+  (setq highlight-thing-delay-seconds 0.8)
+  (setq highlight-thing-what-thing 'symbol)
+  (setq highlight-thing-case-sensitive-p t)
+  (add-hook 'prog-mode-hook 'highlight-thing-mode))
+
+(req-package highlight-current-line
+  :config
+  (setq highlight-current-line-globally t))
+
+
+(req-package diff-hl
+  :require magit
+  :config
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+  (add-hook 'prog-mode-hook 'diff-hl-mode))
+
 
 ;; Visualize certain like space at end of line and trailing characters after
 ;; fill column.
@@ -714,8 +701,19 @@
 
 (add-hook 'prog-mode-hook 'whitespace-mode)
 
-(require 'req-package)
 
+(req-package keyfreq
+             :config (keyfreq-mode 1)
+             (keyfreq-autosave-mode 1))
+
+
+;;;;;;;;;;;;; CMake
+(req-package cmake-mode
+  :config
+  (setq auto-mode-alist
+        (append '(("CMakeLists\\.txt\\'" . cmake-mode)
+                  ("\\.cmake\\'" . cmake-mode))
+                auto-mode-alist)))
 
 ;; Tries to automatically detect the language of the buffer and setting the dictionary accordingly.
 (req-package auto-dictionary
@@ -729,21 +727,15 @@
   (ido-mode 1)
   (ido-everywhere 1)
   (flx-ido-mode 1)
-
   ;; Disable ido faces to see flx highlights.
   (setq ido-enable-flex-matching t)
-(setq ido-use-faces nil))
+  (setq ido-use-faces nil))
 
 (req-package helm-flx
   :require (helm flx)
   :config
   ;; Use flx for better search results.
   (helm-flx-mode +1))
-
-
-(require 'keyfreq)
-(keyfreq-mode 1)
-(keyfreq-autosave-mode 1)
 
 (req-package projectile
   :init
@@ -777,66 +769,9 @@
 (defconst yas-dir (concat user-emacs-directory "snippets"))
 
 (req-package yasnippet
-;;  :require helm
   :config
   ;; Add local snippets to override some of the defaults in elpa folder.
   (add-to-list 'yas-snippet-dirs yas-dir)
-
-  ;; (setq yas-prompt-functions
-  ;;       '(yas-ido-prompt yas-dropdown-prompt yas-completing-prompt yas-x-prompt yas-no-prompt))
-
-  ;; (defun shk-yas/helm-prompt (prompt choices &optional display-fn)
-  ;;   "Use helm to select a snippet. Put this into `yas/prompt-functions.'"
-  ;;   (interactive)
-  ;;   (setq display-fn (or display-fn 'identity))
-  ;;   (if (require 'helm-config)
-  ;;       (let (tmpsource cands result rmap)
-  ;;         (setq cands (mapcar (lambda (x) (funcall display-fn x)) choices))
-  ;;         (setq rmap (mapcar (lambda (x) (cons (funcall display-fn x) x)) choices))
-  ;;         (setq tmpsource
-  ;;               (list
-  ;;                (cons 'name prompt)
-  ;;                (cons 'candidates cands)
-  ;;                '(action . (("Expand" . (lambda (selection) selection))))
-  ;;                ))
-  ;;         (setq result (helm-other-buffer '(tmpsource) "*helm-select-yasnippet"))
-  ;;         (if (null result)
-  ;;             (signal 'quit "user quit!")
-  ;;           (cdr (assoc result rmap))))
-  ;;     nil))
-  ;; (add-to-list 'yas-prompt-functions 'shk-yas/helm-prompt)
-
-  (yas-global-mode 1)
-
-  ;; Test if thing at cursor can expand with yas, if it can then change the color of the cursor.
-  (setq default-cursor-color (face-background 'cursor))
-  (setq yasnippet-can-fire-cursor-color "#4CB5F5")
-
-  (defun yasnippet-can-fire-p (&optional field)
-    (interactive)
-    (setq yas--condition-cache-timestamp (current-time))
-    (let (templates-and-pos)
-      (unless (and yas-expand-only-for-last-commands
-                   (not (member last-command yas-expand-only-for-last-commands)))
-        (setq templates-and-pos (if field
-                                    (save-restriction
-                                      (narrow-to-region (yas--field-start field)
-                                                        (yas--field-end field))
-                                      (yas--templates-for-key-at-point))
-                                  (yas--templates-for-key-at-point))))
-      (and templates-and-pos (first templates-and-pos))))
-
-  (defun my/change-cursor-color-when-can-expand (&optional field)
-    (interactive)
-    (when (eq last-command 'self-insert-command)
-      (set-cursor-color (if (my/can-expand)
-                            yasnippet-can-fire-cursor-color
-                          default-cursor-color))))
-
-  (defun my/can-expand ()
-    "Return true if right after an expandable thing."
-    (or (abbrev--before-point) (yasnippet-can-fire-p)))
-
-  (add-hook 'post-command-hook 'my/change-cursor-color-when-can-expand))
+  (yas-global-mode 1))
 
 (req-package-finish)

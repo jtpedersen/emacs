@@ -1,5 +1,5 @@
 ;;COMMON CONFIGURATIONS
-
+(setq debug-on-error t)
 (show-paren-mode t)			;; show matching parenthesis
 (column-number-mode t)			;; show current column
 (menu-bar-mode -1)			;; don't show menu-bar
@@ -381,9 +381,10 @@
 (add-to-list 'auto-mode-alist '("sites-\\(available\\|enabled\\)/" . apache-mode))
 
 ;;;;;;;;; Python-mode
-
-(autoload 'python-mode "python-mode" "Mode for editing Python source files")
-(add-to-list 'auto-mode-alist '("\\.py" . python-mode))
+(req-package python-mode
+  :config
+  (autoload 'python-mode "python-mode" "Mode for editing Python source files")
+  (add-to-list 'auto-mode-alist '("\\.py" . python-mode)))
 
 
 ;;;;;;;;; JavaScript
@@ -427,11 +428,6 @@
 ;; cppcheck --template='{file}:{line}:{severity}:{message}' --quiet <filename>
 
 
-
-(add-hook 'c++-mode-hook 'irony-mode)
-(add-hook 'c-mode-hook 'irony-mode)
-(add-hook 'objc-mode-hook 'irony-mode)
-
 ;; replace the `completion-at-point' and `complete-symbol' bindings in
 ;; irony-mode's buffers by irony-mode's function
 (defun my-irony-mode-hook ()
@@ -439,56 +435,54 @@
     'irony-completion-at-point-async)
   (define-key irony-mode-map [remap complete-symbol]
     'irony-completion-at-point-async))
-(add-hook 'irony-mode-hook 'my-irony-mode-hook)
-(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
+(req-package   company-irony
+  :require (company company-irony-c-headers)
+  :config
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'objc-mode-hook 'irony-mode)
+  (add-hook 'irony-mode-hook 'my-irony-mode-hook)
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+  (eval-after-load 'company
+    '(add-to-list 'company-backends 'company-irony))
+  ;; (optional) adds CC special commands to `company-begin-commands' in order to
+  ;; trigger completion at interesting places, such as after scope operator
+  ;;     std::|
+  (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+  (add-hook 'c++-mode-hook 'company-mode)
+  (add-hook 'c-mode-hook 'company-mode)
+  (add-hook 'objc-mode-hook 'company-mode))
 
 
-(eval-after-load 'company
-  '(add-to-list 'company-backends 'company-irony))
-
-;; (optional) adds CC special commands to `company-begin-commands' in order to
-;; trigger completion at interesting places, such as after scope operator
-;;     std::|
-(add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-
-
-
-(add-hook 'c++-mode-hook 'company-mode)
-(add-hook 'c-mode-hook 'company-mode)
-(add-hook 'objc-mode-hook 'company-mode)
-
-
+;;;; irony install server 
+;; -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON   -DCMAKE_PREFIX_PATH=/opt/local/libexec/llvm-3.8 CXX=clang-mp-3.8 cmake -DCMAKE_INSTALL_PREFIX\=/Users/jtp/.emacs.d/irony/ /Users/jtp/.emacs.d/elpa/irony-20160317.1527/server && cmake --build . --use-stderr --config Release --target install
 
 ;; ;;
 ;; ;;org mode
 ;;
-
-(define-key global-map "\C-ca" 'org-agenda)
-(setq org-log-done t)
-(setq org-todo-keywords (quote (
-				(sequence "TODO(t)" "STARTED(s)" "WAITING(w)" "APPT(a)" "|" "DONE(d)" "CANCELLED(c)" "DEFERRED(f)"))))
-
-;; Resume clocking tasks when emacs is restarted
-                                        ;(org-clock-persistence-insinuate)
-;;
-;; Yes it's long... but more is better ;)
-(setq org-clock-history-length 35)
-;; Resume clocking task on clock-in if the clock is open
-(setq org-clock-in-resume t)
-;; Change task state to STARTED when clocking in
+(req-package org-mode
+  :config
+  (define-key global-map "\C-ca" 'org-agenda)
+  (setq org-log-done t)
+  ;;
+  ;; Yes it's long... but more is better ;)
+  (setq org-clock-history-length 35)
+  ;; Resume clocking task on clock-in if the clock is open
+  (setq org-clock-in-resume t)
+  ;; Change task state to STARTED when clocking in
                                         ;(setq org-clock-in-switch-to-state "STARTED")
+  ;; writing hooks
+  (add-hook 'org-mode-hook 'auto-fill-mode t)
+  (add-hook 'org-mode-hook 'flyspell-mode t)
 
-;; writing hooks
-(add-hook 'org-mode-hook 'auto-fill-mode t)
-(add-hook 'org-mode-hook 'flyspell-mode t)
-
-;; babel
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((sh . t)
-   (python . t)
-   (emacs-lisp . t)
-   ))
+  ;; babel
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((sh . t)
+     (python . t)
+     (emacs-lisp . t)
+     )))
 
 
 ;;magit
@@ -565,8 +559,8 @@
 ;; fixme in comments
 (req-package fic-mode
   :config
-  (add-to-list 'fic-highlighted-words '("XXX"))
-  (add-hook 'c++-mode-hook 'turn-on-fic-mode))
+  (add-to-list 'fic-highlighted-words '"XXX")
+  (add-hook 'c++-mode-hook 'fic-mode))
 
 ;; ala tail -f for log files
 (add-to-list 'auto-mode-alist '("\\.log\\'" . auto-revert-mode))
@@ -582,7 +576,9 @@
   (sml/apply-theme 'dark)
   (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/keyshot_network" ":KS-NET:") t)
   (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/" ":KS:") t)
-  (add-to-list 'sml/replacer-regexp-list '("^~/luxion" ":Luxion:") t))
+  (add-to-list 'sml/replacer-regexp-list '("^~/luxion" ":Luxion:") t)
+  (add-to-list 'sml/replacer-regexp-list '(".*repo/src/keyshot_network" ":ksnr:") t)
+  )
 
 (req-package clang-format
   :config
@@ -696,7 +692,7 @@
 (req-package diff-hl
   :require magit
   :config
-  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+;  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   (add-hook 'prog-mode-hook 'diff-hl-mode))
 
 

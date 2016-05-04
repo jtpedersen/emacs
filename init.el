@@ -718,10 +718,10 @@
                 auto-mode-alist)))
 
 ;; Tries to automatically detect the language of the buffer and setting the dictionary accordingly.
-(req-package auto-dictionary
-  :require ispell
-  :config
-  (add-hook 'text-mode-hook 'auto-dictionary-mode))
+;; (req-package auto-dictionary
+;;   :require ispell
+;;   :config
+;;   (add-hook 'text-mode-hook 'auto-dictionary-mode))
 
 (req-package flx-ido
   :require flx
@@ -775,5 +775,29 @@
   ;; Add local snippets to override some of the defaults in elpa folder.
   (add-to-list 'yas-snippet-dirs yas-dir)
   (yas-global-mode 1))
+
+;; Turn on smerge-mode when opening a file with the markers in them.
+(defun sm-try-smerge ()
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward "^<<<<<<< " nil t)
+      (smerge-mode 1))))
+
+(add-hook 'find-file-hook 'sm-try-smerge)
+
+
+(defun sudo-find-file (file)
+  "Find file with sudo/tramp."
+  (interactive
+   (list
+    (read-file-name "Sudo find file: ")))
+  (find-file (format "/sudo::%s" file)))
+
+(defun sudo-find-current ()
+  "Find current buffer file with sudo/tramp."
+  (interactive)
+  (sudo-find-file (buffer-file-name)))
+
+(global-set-key (kbd "C-x w") 'sudo-find-current)
 
 (req-package-finish)

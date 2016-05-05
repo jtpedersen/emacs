@@ -1,5 +1,5 @@
 ;;COMMON CONFIGURATIONS
-(setq debug-on-error t)
+;;(setq debug-on-error t)
 (show-paren-mode t)			;; show matching parenthesis
 (column-number-mode t)			;; show current column
 (menu-bar-mode -1)			;; don't show menu-bar
@@ -30,28 +30,59 @@
 
 (add-to-list 'load-path "~/.emacs.d/lisp")
 
-;;;packages
-(require 'package)
-(add-to-list 'package-archives
-	     '("melpa" . "http://melpa.org/packages/") t)
+; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
+;; week.
+(setq backup-dir "~/.emacs.d/backups")
+(unless (file-exists-p backup-dir)
+ (make-directory backup-dir))
 
-(package-initialize)
+(message "Deleting backup files older than a week...")
+(let ((week (* 60 60 24 7))
+     (current (float-time (current-time))))
+ (dolist (file (directory-files backup-dir t))
+   (when (and (backup-file-name-p file)
+              (> (- current (float-time (nth 5 (file-attributes file))))
+                 week))
+     (message "%s" file)
+     (delete-file file))))
 
-(require 'req-package)
+(setq backup-directory-alist `((".*" . ,backup-dir)))
+(setq auto-save-file-name-transforms `((".*" ,backup-dir t)))
 
-;; magic return to where you left from
-(req-package saveplace
-  :config
-  (setq-default save-place t)
-  (setq save-place-file (concat user-emacs-directory "saveplace.txt" )))
-;; Saves mini buffer history including search and kill ring values, and compile history.
-(req-package savehist
-  :config
-  (setq savehist-additional-variables
-        '(search-ring regexp-search-ring kill-ring compile-history))
-  (setq savehist-autosave-interval 60)
-  (setq savehist-file (concat user-emacs-directory "savehist"))
-  (savehist-mode t))
+(defun dont-kill-emacs(bool)
+  "Disable C-x C-c binding execute kill-emacs."
+  (interactive
+   (list (y-or-n-p "Do you want to kill emacs? ")))
+  (if bool
+   (save-buffers-kill-terminal)
+   (message "phew")))
+(global-set-key (kbd "C-x C-c") 'dont-kill-emacs)
+
+(defun kill-other-buffers ()
+ "Kill all other buffers."
+ (interactive)
+ (mapc 'kill-buffer
+       (delq (current-buffer)
+             (remove-if-not 'buffer-file-name (buffer-list)))))
+;; Make font bigger/smaller.
+(global-set-key (kbd "C-+") 'text-scale-increase)
+(global-set-key (kbd "C--") 'text-scale-decrease)
+(global-set-key (kbd "C-0") 'text-scale-adjust)
+
+
+(defun sudo-find-file (file)
+  "Find file with sudo/tramp."
+  (interactive
+   (list
+    (read-file-name "Sudo find file: ")))
+  (find-file (format "/sudo::%s" file)))
+
+(defun sudo-find-current ()
+  "Find current buffer file with sudo/tramp."
+  (interactive)
+  (sudo-find-file (buffer-file-name)))
+
+(global-set-key (kbd "C-x w") 'sudo-find-current)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -380,6 +411,30 @@
 (add-to-list 'auto-mode-alist '("access\\.conf\\'" . apache-mode))
 (add-to-list 'auto-mode-alist '("sites-\\(available\\|enabled\\)/" . apache-mode))
 
+
+;;;packages
+(require 'package)
+(add-to-list 'package-archives
+	     '("melpa" . "http://melpa.org/packages/") t)
+
+(package-initialize)
+(require 'req-package)
+
+;; magic return to where you left from
+(req-package saveplace
+  :config
+  (setq-default save-place t)
+  (setq save-place-file (concat user-emacs-directory "saveplace.txt" )))
+;; Saves mini buffer history including search and kill ring values, and compile history.
+(req-package savehist
+  :config
+  (setq savehist-additional-variables
+        '(search-ring regexp-search-ring kill-ring compile-history))
+  (setq savehist-autosave-interval 60)
+  (setq savehist-file (concat user-emacs-directory "savehist"))
+  (savehist-mode t))
+
+
 ;;;;;;;;; Python-mode
 (req-package python-mode
   :config
@@ -449,19 +504,19 @@
   ;; (optional) adds CC special commands to `company-begin-commands' in order to
   ;; trigger completion at interesting places, such as after scope operator
   ;;     std::|
-  (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+;;  (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
   (add-hook 'c++-mode-hook 'company-mode)
   (add-hook 'c-mode-hook 'company-mode)
   (add-hook 'objc-mode-hook 'company-mode))
 
 
 ;;;; irony install server 
-;; -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON   -DCMAKE_PREFIX_PATH=/opt/local/libexec/llvm-3.8 CXX=clang-mp-3.8 cmake -DCMAKE_INSTALL_PREFIX\=/Users/jtp/.emacs.d/irony/ /Users/jtp/.emacs.d/elpa/irony-20160317.1527/server && cmake --build . --use-stderr --config Release --target install
+;;  CXX=clang-mp-3.8 cmake -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON   -DCMAKE_PREFIX_PATH=/opt/local/libexec/llvm-3.8 -DCMAKE_INSTALL_PREFIX\=/Users/jtp/.emacs.d/irony/ /Users/jtp/.emacs.d/elpa/irony-20160317.1527/server && cmake --build . --use-stderr --config Release --target install
 
 ;; ;;
 ;; ;;org mode
 ;;
-(req-package org-mode
+(req-package org
   :config
   (define-key global-map "\C-ca" 'org-agenda)
   (setq org-log-done t)
@@ -615,47 +670,6 @@
 
 
 
-; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
-;; week.
-(setq backup-dir "~/.emacs.d/backups")
-(unless (file-exists-p backup-dir)
- (make-directory backup-dir))
-
-(message "Deleting backup files older than a week...")
-(let ((week (* 60 60 24 7))
-     (current (float-time (current-time))))
- (dolist (file (directory-files backup-dir t))
-   (when (and (backup-file-name-p file)
-              (> (- current (float-time (nth 5 (file-attributes file))))
-                 week))
-     (message "%s" file)
-     (delete-file file))))
-
-(setq backup-directory-alist `((".*" . ,backup-dir)))
-(setq auto-save-file-name-transforms `((".*" ,backup-dir t)))
-
-(defun dont-kill-emacs(bool)
-  "Disable C-x C-c binding execute kill-emacs."
-  (interactive
-   (list (y-or-n-p "Do you want to kill emacs? ")))
-  (if bool
-   (save-buffers-kill-terminal)
-   (message "phew")))
-(global-set-key (kbd "C-x C-c") 'dont-kill-emacs)
-
-(defun kill-other-buffers ()
- "Kill all other buffers."
- (interactive)
- (mapc 'kill-buffer
-       (delq (current-buffer)
-             (remove-if-not 'buffer-file-name (buffer-list)))))
-;; Make font bigger/smaller.
-(global-set-key (kbd "C-+") 'text-scale-increase)
-(global-set-key (kbd "C--") 'text-scale-decrease)
-(global-set-key (kbd "C-0") 'text-scale-adjust)
-
-
-
 (req-package vlf
   :config
   (require 'vlf-setup)
@@ -748,7 +762,7 @@
   (projectile-global-mode))
 
 (req-package helm-projectile
-  :require projectile
+  :require (projectile ack)
   :config
   (setq helm-projectile-fuzzy-match t)
   (setq projectile-switch-project-action 'helm-projectile-find-file)
@@ -761,7 +775,7 @@
   (define-key projectile-mode-map
     (kbd (concat projectile-keymap-prefix "o")) 'helm-projectile-find-other-file)
   (define-key projectile-mode-map
-    (kbd (concat projectile-keymap-prefix "a")) 'helm-projectile-ag)
+    (kbd (concat projectile-keymap-prefix "a")) 'helm-projectile-ack)
   (define-key projectile-mode-map
     (kbd (concat projectile-keymap-prefix "p")) 'helm-projectile-switch-project)
   (define-key projectile-mode-map
@@ -784,20 +798,5 @@
       (smerge-mode 1))))
 
 (add-hook 'find-file-hook 'sm-try-smerge)
-
-
-(defun sudo-find-file (file)
-  "Find file with sudo/tramp."
-  (interactive
-   (list
-    (read-file-name "Sudo find file: ")))
-  (find-file (format "/sudo::%s" file)))
-
-(defun sudo-find-current ()
-  "Find current buffer file with sudo/tramp."
-  (interactive)
-  (sudo-find-file (buffer-file-name)))
-
-(global-set-key (kbd "C-x w") 'sudo-find-current)
 
 (req-package-finish)

@@ -509,9 +509,23 @@
   (add-hook 'c-mode-hook 'company-mode)
   (add-hook 'objc-mode-hook 'company-mode))
 
+(req-package flycheck-irony
+ :require irony flycheck
+ :config
+ (add-hook 'flycheck-mode-hook 'flycheck-irony-setup))
 
-;;;; irony install server 
-;;  CXX=clang-mp-3.8 cmake -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON   -DCMAKE_PREFIX_PATH=/opt/local/libexec/llvm-3.8 -DCMAKE_INSTALL_PREFIX\=/Users/jtp/.emacs.d/irony/ /Users/jtp/.emacs.d/elpa/irony-20160317.1527/server && cmake --build . --use-stderr --config Release --target install
+;; (req-package irony-eldoc
+;;  :require irony
+;;  :config
+;;  (add-hook 'irony-mode-hook 'irony-eldoc))
+
+;; ;; Elisp
+;; (add-hook 'emacs-lisp-mode-hook
+;;           (lambda ()
+;;             (eldoc-mode)
+;;             (local-set-key (kbd "C-c b") 'eval-buffer)
+;;             (local-set-key (kbd "C-c r") 'eval-region)))
+
 
 ;; ;;
 ;; ;;org mode

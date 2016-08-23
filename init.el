@@ -27,8 +27,11 @@
 (setq display-time-24hr-format t)
 (display-time)
 
-
 (add-to-list 'load-path "~/.emacs.d/lisp")
+
+(defun show-elapsed-time (msg start end)
+  (let ((elapsed (float-time (time-subtract end start))))
+    (message "%s %.3fs" msg elapsed)))
 
 ; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
 ;; week.
@@ -92,6 +95,7 @@
  '(custom-safe-themes
    (quote
     ("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "49ad7c8d458074db7392f8b8a49235496e9228eb2fa6d3ca3a7aa9d23454efc6" "6a9606327ecca6e772fba6ef46137d129e6d1888dcfc65d0b9b27a7a00a4af20" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "3a727bdc09a7a141e58925258b6e873c65ccf393b2240c51553098ca93957723" "6a37be365d1d95fad2f4d185e51928c789ef7a4ccf17e7ca13ad63a8bf5b922f" "756597b162f1be60a12dbd52bab71d40d6a2845a3e3c2584c6573ee9c332a66e" default)))
+ '(magit-branch-arguments nil)
  '(magit-log-arguments (quote ("--graph" "--color" "--decorate" "-n256")))
  '(magit-push-arguments (quote ("--set-upstream")))
  '(org-agenda-files (quote ("~/orgs/luxdo.org"))))
@@ -179,7 +183,8 @@
 (global-set-key [(C-f5)] 'compile)
 (global-set-key [(f5)] 'recompile)
 (global-set-key [(f6)] 'next-error)
-(global-set-key [(C-f6)] 'next-error-skip-warnings)
+(global-set-key [(C-f6)] 'flycheck-next-error)
+
 ;; Compilation output
 (setq compilation-scroll-output t)
 
@@ -489,14 +494,23 @@
   (define-key irony-mode-map [remap completion-at-point]
     'irony-completion-at-point-async)
   (define-key irony-mode-map [remap complete-symbol]
-    'irony-completion-at-point-async))
+    'irony-completion-at-point-async)
+    ;; Only run auto-setup first time to be faster. However, it's not perfect because if opening a
+    ;; file in a different project root it will not auto-setup for the new CDB. But then use
+    ;; `irony-cdb-json-select'.
+    (when (not my-irony-cdb-loaded-time)
+      (setq my-irony-cdb-loaded-time (current-time))
+      (message "Irony CDB auto-setup...")
+      (irony-cdb-autosetup-compile-options)
+      (show-elapsed-time "Irony CDB auto-setup done in" my-irony-cdb-loaded-time (current-time))))
+
 
 (req-package   company-irony
   :require (company company-irony-c-headers)
   :config
-  (add-hook 'c++-mode-hook 'irony-mode)
-  (add-hook 'c-mode-hook 'irony-mode)
-  (add-hook 'objc-mode-hook 'irony-mode)
+  ;(add-hook 'c++-mode-hook 'irony-mode)
+  ;(add-hook 'c-mode-hook 'irony-mode)
+  ;(add-hook 'objc-mode-hook 'irony-mode)
   (add-hook 'irony-mode-hook 'my-irony-mode-hook)
   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
   (eval-after-load 'company
@@ -504,7 +518,15 @@
   ;; (optional) adds CC special commands to `company-begin-commands' in order to
   ;; trigger completion at interesting places, such as after scope operator
   ;;     std::|
-;;  (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+  ;;  (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+  (defun irony-auto-kill ()
+    (interactive)
+    (run-at-time "50 sec" nil
+                 (lambda ()
+                   (irony-server-kill)
+                   (irony-auto-kill))))
+;;  (add-hook 'irony-mode-hook 'irony-auto-kill)
+  
   (add-hook 'c++-mode-hook 'company-mode)
   (add-hook 'c-mode-hook 'company-mode)
   (add-hook 'objc-mode-hook 'company-mode))
@@ -512,6 +534,8 @@
 (req-package flycheck-irony
  :require irony flycheck
  :config
+ (add-hook 'after-init-hook #'global-flycheck-mode)
+ (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
  (add-hook 'flycheck-mode-hook 'flycheck-irony-setup))
 
 ;; (req-package irony-eldoc
@@ -646,7 +670,8 @@
   (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/keyshot_network" ":KS-NET:") t)
   (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/" ":KS:") t)
   (add-to-list 'sml/replacer-regexp-list '("^~/luxion" ":Luxion:") t)
-  (add-to-list 'sml/replacer-regexp-list '(".*repo/src/keyshot_network" ":ksnr:") t)
+  (add-to-list 'sml/replacer-regexp-list '(".*/src/keyshot_network" ":ksnr:") t)
+  (add-to-list 'sml/replacer-regexp-list '(".*/test/keyshot_network" ":ksnr-test:") t)
   )
 
 (req-package clang-format
@@ -663,10 +688,10 @@
   (global-set-key (kbd "C-h C-m") 'discover-my-major)
   (global-set-key (kbd "C-h M-m") 'discover-my-mode))
 
-(req-package flycheck
-  :config
-  (add-hook 'after-init-hook #'global-flycheck-mode)
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11"))))
+;; (req-package flycheck
+;;   :config
+;;   (add-hook 'after-init-hook #'global-flycheck-mode)
+;;   (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11"))))
 
 ;; (require 'devdocs-lookup)
 ;; (devdocs-setup)
@@ -693,7 +718,7 @@
 (setq compilation-scroll-output t)
 (setq compilation-window-height 30
       compilation-scroll-output 'first-error
-      compilation-skip-threshold 2 ; skip accros warnings
+;      compilation-skip-threshold 2 ; skip accros warnings
       compilation-always-kill t) ;; Don't ask, just start new compilation.
 
 ;; terminal colors
@@ -782,22 +807,43 @@
   (setq projectile-switch-project-action 'helm-projectile-find-file)
 
   ;; Use helm-projectile alternatives.
-  (define-key projectile-mode-map
-    (kbd (concat projectile-keymap-prefix "f")) 'helm-projectile-find-file)
-  (define-key projectile-mode-map
-    (kbd (concat projectile-keymap-prefix "d")) 'helm-projectile-find-dir)
-  (define-key projectile-mode-map
-    (kbd (concat projectile-keymap-prefix "o")) 'helm-projectile-find-other-file)
-  (define-key projectile-mode-map
-    (kbd (concat projectile-keymap-prefix "a")) 'helm-projectile-ack)
-  (define-key projectile-mode-map
-    (kbd (concat projectile-keymap-prefix "p")) 'helm-projectile-switch-project)
-  (define-key projectile-mode-map
-    (kbd (concat projectile-keymap-prefix "b")) 'helm-projectile-switch-to-buffer))
+  (defun msk/projectile-define-prefix-key (key func)
+    (define-key projectile-mode-map
+      (kbd (concat projectile-keymap-prefix key)) func))
+  (msk/projectile-define-prefix-key "f" 'helm-projectile-find-file)
+  (msk/projectile-define-prefix-key "d" 'helm-projectile-find-dir)
+  (msk/projectile-define-prefix-key "o" 'helm-projectile-find-other-file)
+  (msk/projectile-define-prefix-key "a" 'helm-projectile-ag)
+  (msk/projectile-define-prefix-key "p" 'helm-projectile-switch-project)
+  (msk/projectile-define-prefix-key "b" 'helm-projectile-switch-to-buffer)
+  (msk/projectile-define-prefix-key "r" 'helm-projectile-recentf)
+
+  (defun msk/helm-update-gtags (arg)
+    "Update gtags for all files or create if they don't already
+exist. When given the prefix argument present gtags will be
+removed and then recreated."
+    (interactive "P")
+    (let ((gtags-file (concat (projectile-project-root) "GTAGS"))
+          (grtags-file (concat (projectile-project-root) "GRTAGS"))
+          (gpath-file (concat (projectile-project-root) "GPATH")))
+      (progn
+        (when arg
+          (message "Removing gtags..")
+          (delete-file gtags-file)
+          (delete-file grtags-file)
+          (delete-file gpath-file))
+        (if (file-exists-p gtags-file)
+            (progn
+              (message "Updating gtags..")
+              (universal-argument)
+              (helm-gtags-update-tags))
+          (progn
+            (message "Creating gtags..")
+            (helm-gtags-create-tags (projectile-project-root) "default"))))))
+  (msk/projectile-define-prefix-key "R" 'msk/helm-update-gtags))
 
 
 (defconst yas-dir (concat user-emacs-directory "snippets"))
-
 (req-package yasnippet
   :config
   ;; Add local snippets to override some of the defaults in elpa folder.
@@ -812,5 +858,10 @@
       (smerge-mode 1))))
 
 (add-hook 'find-file-hook 'sm-try-smerge)
+
+(req-package helm-ag
+  :require helm
+  :config
+  (setq helm-ag-base-command "ag --nocolor --nogroup --smart-case --stats"))
 
 (req-package-finish)

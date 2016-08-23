@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: nitpick
+# key: N
+# --
+//NITPICK JTP `(format-time-string "<%Y-%m-%d>" (current-time))`: $0

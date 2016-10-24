@@ -175,16 +175,6 @@
 
 ;;;;;;;;; CUSTOM KEYBINDINGS
 
-;; (global-set-key (kbd "C-s") 'isearch-forward-regexp)
-;; (global-set-key (kbd "C-M-s") 'isearch-forward)
-;; (global-set-key (kbd "C-r") 'isearch-backward-regexp)
-;; (global-set-key (kbd "C-M-r") 'isearch-backward)
-;; (global-set-key (kbd "M-n") 'scroll-up-one-line)
-;; (global-set-key (kbd "M-p") 'scroll-down-one-line)
-;; (global-set-key (kbd "M-P") 'previous-user-buffer)
-;; (global-set-key (kbd "M-N") 'next-user-buffer)
-;;                                         ;(global-set-key (kbd "M-ƒ") 'open-with-finder) ; Command+Option+f
-
 (global-set-key (kbd "C-c o") 'ff-find-other-file)
 
 
@@ -209,6 +199,15 @@
             (define-key c++-mode-map "\C-c\C-f" 'next-error)))
 
 
+;; Turn off adaptive process buffering when using compilation mode because it speeds up immensely
+;; when there is a lot of output in the buffer.
+(add-hook 'compilation-mode-hook
+          (lambda () (setq process-adaptive-read-buffering nil)))
+
+;; Turn it back on again when finished.
+(add-hook 'compilation-finish-functions
+          (lambda (buffer string)
+            (setq process-adaptive-read-buffering t)))
 
 ;; Compilation output
 (setq compilation-scroll-output t)
@@ -450,6 +449,13 @@
 
 (package-initialize)
 (require 'req-package)
+
+
+;; Closes *compilation* buffer after successful compilation, and otherwise when the failure was
+;; fixed to compile, it restores the original window configuration.
+(req-package bury-successful-compilation
+  :config
+  (add-hook 'prog-mode-hook 'bury-successful-compilation))
 
 ;; magic return to where you left from
 (req-package saveplace
@@ -900,6 +906,11 @@ removed and then recreated."
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
   :init (setq markdown-command "multimarkdown"))
+
+
+(req-package ace-isearch
+  :config helm-swoop avy ace-jump-mode
+  (ace-isearch-mode +1))
 
 
 (req-package-finish)

@@ -107,7 +107,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(hi-yellow ((t (:background "yellow3" :foreground "black"))))
  '(highlight-current-line-face ((t (:background "gray22")))))
 
 
@@ -150,10 +149,29 @@
 
 ;;;;;;;;; CUSTOM COLORS & FONTS
 
-(load-theme 'zenburn)
+(load-theme 'tsdh-dark)
 
 (setq frame-title-format (list (format "%%S %%j ")
                                '(buffer-file-name "%f" (dired-directory dired-directory "%b"))))
+
+(defface hi-yellow
+  '((((min-colors 88) (background dark))
+     (:background "DarkGoldenrod3" :foreground "black"))
+    (((background dark)) (:background "DarkGoldenrod3" :foreground "black"))
+    (((min-colors 88)) (:background "DarkGoldenrod3"))
+    (t (:background "DarkGoldenrod3")))
+  "Default face for hi-lock mode."
+  :group 'hi-lock-faces)
+
+(defface hi-pink
+  '((((background dark)) (:background "pink" :foreground "black"))
+    (t (:background "pink")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces)
+
+
+
+
 
 ;;;;;;;;; CUSTOM KEYBINDINGS
 
@@ -184,6 +202,13 @@
 (global-set-key [(f5)] 'recompile)
 (global-set-key [(f6)] 'next-error)
 (global-set-key [(C-f6)] 'flycheck-next-error)
+
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (define-key c++-mode-map "\C-c\C-c" 'recompile)
+            (define-key c++-mode-map "\C-c\C-f" 'next-error)))
+
+
 
 ;; Compilation output
 (setq compilation-scroll-output t)

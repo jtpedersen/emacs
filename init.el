@@ -193,11 +193,10 @@
 (global-set-key [(f6)] 'next-error)
 (global-set-key [(C-f6)] 'flycheck-next-error)
 
-(add-hook 'c-mode-common-hook
+(add-hook 'prog-mode-hook
           (lambda ()
-            (define-key c++-mode-map "\C-c\C-c" 'recompile)
-            (define-key c++-mode-map "\C-c\C-f" 'next-error)))
-
+            (local-set-key "\C-c\C-c" 'recompile)
+            (local-set-key "\C-c\C-f" 'next-error)))
 
 ;; Turn off adaptive process buffering when using compilation mode because it speeds up immensely
 ;; when there is a lot of output in the buffer.
@@ -909,8 +908,12 @@ removed and then recreated."
 
 
 (req-package ace-isearch
-  :config helm-swoop avy ace-jump-mode
-  (ace-isearch-mode +1))
+  :require helm-swoop avy ace-jump-mode
+  :config
+  (ace-isearch-mode +1)
+  ;; (define-key swoop-map (kbd "C-s") 'swoop-action-goto-line-next)
+  ;; (define-key swoop-map (kbd "C-r") 'swoop-action-goto-line-prev)
+  )
 
 
 (req-package-finish)

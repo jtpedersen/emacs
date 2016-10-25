@@ -101,7 +101,7 @@
  '(org-agenda-files (quote ("~/orgs/luxdo.org")))
  '(package-selected-packages
    (quote
-    (zenburn-theme window-numbering vlf srefactor solarized-theme sml-modeline sml-mode smart-mode-line shackle req-package rainbow-mode rainbow-delimiters python-mode python-info pylint org nsis-mode multiple-cursors markdown-mode magit keyfreq jinja2-mode jazz-theme irony-eldoc htmlize highlight-thing highlight-current-line helm-projectile helm-gtags helm-flx helm-c-yasnippet helm-ag git-timemachine flycheck-irony flx-ido fic-mode discover-my-major diff-hl dash-at-point company-irony-c-headers company-irony cmake-mode clang-format auto-dictionary auto-complete-chunk auto-complete-c-headers ack ace-isearch))))
+    (yasnippet ack helm-projectile projectile helm-flx flx-ido cmake-mode keyfreq diff-hl highlight-current-line highlight-thing vlf discover-my-major window-numbering clang-format smart-mode-line fic-mode helm-gtags helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -680,6 +680,8 @@
 
 ;; ;; maya mel - mode
 (add-to-list 'auto-mode-alist '("\\.mel$" . c++-mode))
+;; arduino files
+(add-to-list 'auto-mode-alist '("\\.ino$" . c++-mode))
 
 ;; fixme in comments
 (req-package fic-mode

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: qCritical
+# key: qcc
+# --
+qCCritical(${1:$$(yas-choose-value `( "DatabaseLog", "JobLog", "JobctrLog", "TaskLog", "ManagerLog", "WorkerLog", "MonitorLog", "BrokerLog", "DatastoreLog", "CliLog", "TestLog", "DaliLog", "NetworkLog", "WatchdogLog", "CommonLog"))})<< $2;
+$0

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: consumeError
+# key: ce
+# --
+consumeError();

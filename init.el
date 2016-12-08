@@ -489,7 +489,6 @@
 (add-hook 'c-mode-common-hook
           (lambda ()
             ;; (flyspell-prog-mode)
-            (local-set-key (kbd "C-;") 'iedit-mode) ;; default is overwritten by flyspell-correct-word-before-point
             (setq tab-width 2)
             (setq c-basic-offset tab-width)
             (setq indent-tabs-mode nil)))
@@ -574,12 +573,12 @@
 ;;  :config
 ;;  (add-hook 'irony-mode-hook 'irony-eldoc))
 
-;; ;; Elisp
-;; (add-hook 'emacs-lisp-mode-hook
-;;           (lambda ()
-;;             (eldoc-mode)
-;;             (local-set-key (kbd "C-c b") 'eval-buffer)
-;;             (local-set-key (kbd "C-c r") 'eval-region)))
+;; Elisp
+(add-hook 'emacs-lisp-mode-hook
+          (lambda ()
+            (eldoc-mode)
+            (local-set-key (kbd "C-c b") 'eval-buffer)
+            (local-set-key (kbd "C-c r") 'eval-region)))
 
 
 ;; ;;
@@ -625,7 +624,9 @@
   :config
   (global-set-key (kbd "C->") 'mc/mark-next-like-this)
   (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this))
+  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+  (global-set-key (kbd "C-;") 'mc/mark-all-dwim)
+  )
 
 ;;;;;;;;;;;;; HELM
 
@@ -910,10 +911,20 @@ removed and then recreated."
 (req-package ace-isearch
   :require helm-swoop avy ace-jump-mode
   :config
-  (ace-isearch-mode +1)
+   (setq ace-isearch-input-idle-jump-delay 0.5
+        ace-isearch-function 'avy-goto-word-1
+        ace-isearch-input-length 6 ; Invoke helm-swoop when >= 6.
+        ace-isearch-function-from-isearch 'ace-isearch-helm-swoop-from-isearch
+        ace-isearch-use-jump 'printing-char)
+   (global-ace-isearch-mode +1)
+
   ;; (define-key swoop-map (kbd "C-s") 'swoop-action-goto-line-next)
   ;; (define-key swoop-map (kbd "C-r") 'swoop-action-goto-line-prev)
   )
 
+(req-package highlight-escape-sequences
+  :config
+  ;; Has its own `hes-mode-alist' that specifies which modes it supports.
+  (hes-mode))
 
 (req-package-finish)

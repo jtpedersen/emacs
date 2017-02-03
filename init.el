@@ -452,9 +452,9 @@
 
 ;; Closes *compilation* buffer after successful compilation, and otherwise when the failure was
 ;; fixed to compile, it restores the original window configuration.
-(req-package bury-successful-compilation
-  :config
-  (add-hook 'prog-mode-hook 'bury-successful-compilation))
+;; (req-package bury-successful-compilation
+;;   :config
+;;   (add-hook 'prog-mode-hook 'bury-successful-compilation))
 
 ;; magic return to where you left from
 (req-package saveplace
@@ -901,7 +901,7 @@ removed and then recreated."
   (setq helm-ag-base-command "ag --nocolor --nogroup --smart-case --stats"))
 
 
-(use-package markdown-mode
+(req-package markdown-mode
   :ensure t
   :commands (markdown-mode gfm-mode)
   :mode (("README\\.md\\'" . gfm-mode)
@@ -909,6 +909,8 @@ removed and then recreated."
          ("\\.markdown\\'" . markdown-mode))
   :init (setq markdown-command "multimarkdown"))
 
+(req-package copy-as-format
+  :config (global-set-key (kbd "C-c w s") 'copy-as-format-slack))
 
 (req-package ace-isearch
   :require helm-swoop avy ace-jump-mode

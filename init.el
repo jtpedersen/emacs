@@ -931,4 +931,11 @@ removed and then recreated."
   ;; Has its own `hes-mode-alist' that specifies which modes it supports.
   (hes-mode))
 
+(req-package scad-mode
+  :require 'scad-preview
+  :config
+  (autoload 'scad-mode "scad-mode" "A major mode for editing OpenSCAD code." t)
+  (add-to-list 'auto-mode-alist '("\\.scad$" . scad-mode)))
+
+
 (req-package-finish)

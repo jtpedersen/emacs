@@ -33,21 +33,21 @@
   (let ((elapsed (float-time (time-subtract end start))))
     (message "%s %.3fs" msg elapsed)))
 
-; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
+                                        ; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
 ;; week.
 (setq backup-dir "~/.emacs.d/backups")
 (unless (file-exists-p backup-dir)
- (make-directory backup-dir))
+  (make-directory backup-dir))
 
 (message "Deleting backup files older than a week...")
 (let ((week (* 60 60 24 7))
-     (current (float-time (current-time))))
- (dolist (file (directory-files backup-dir t))
-   (when (and (backup-file-name-p file)
-              (> (- current (float-time (nth 5 (file-attributes file))))
-                 week))
-     (message "%s" file)
-     (delete-file file))))
+      (current (float-time (current-time))))
+  (dolist (file (directory-files backup-dir t))
+    (when (and (backup-file-name-p file)
+               (> (- current (float-time (nth 5 (file-attributes file))))
+                  week))
+      (message "%s" file)
+      (delete-file file))))
 
 (setq backup-directory-alist `((".*" . ,backup-dir)))
 (setq auto-save-file-name-transforms `((".*" ,backup-dir t)))
@@ -57,16 +57,23 @@
   (interactive
    (list (y-or-n-p "Do you want to kill emacs? ")))
   (if bool
-   (save-buffers-kill-terminal)
-   (message "phew")))
+      (save-buffers-kill-terminal)
+    (message "phew")))
 (global-set-key (kbd "C-x C-c") 'dont-kill-emacs)
 
 (defun kill-other-buffers ()
- "Kill all other buffers."
- (interactive)
- (mapc 'kill-buffer
-       (delq (current-buffer)
-             (remove-if-not 'buffer-file-name (buffer-list)))))
+  "Kill all other buffers."
+  (interactive)
+  (mapc 'kill-buffer
+        (delq (current-buffer)
+              (remove-if-not 'buffer-file-name (buffer-list)))))
+
+(defun kill-all-buffers ()
+  "Kill all buffers."
+  (interactive)
+  (mapcar 'kill-buffer (buffer-list))
+  (delete-other-windows))
+
 ;; Make font bigger/smaller.
 (global-set-key (kbd "C-+") 'text-scale-increase)
 (global-set-key (kbd "C--") 'text-scale-decrease)
@@ -113,8 +120,8 @@
 (setq global-fill-column 100)
 (setq-default fill-column global-fill-column)
 (dolist (hook '(auto-fill-mode-hook
-               prog-mode-hook))
- (add-hook hook (lambda () (setq fill-column global-fill-column))))
+                prog-mode-hook))
+  (add-hook hook (lambda () (setq fill-column global-fill-column))))
 
 ;;;;;;;;; MAC OS X SPECIFIC
 
@@ -348,10 +355,18 @@
 (defun lux-fix-buffer ()
   (interactive)
   (lux-fix-function-curls)
-;;  (cleanup-region-or-buffer)
+  ;;  (cleanup-region-or-buffer)
   (lux-fix-function-comments)
   (clang-format-buffer))
 
+
+(defun clang-format-dwim ()
+  "Perform clang-format on region or buffer."
+  (interactive)
+  (save-excursion
+    (if (region-active-p)
+        (clang-format-region (region-beginning) (region-end))
+      (clang-format-buffer))))
 
 ;; Bindings
 (add-hook 'c-mode-common-hook
@@ -525,22 +540,22 @@
     'irony-completion-at-point-async)
   (define-key irony-mode-map [remap complete-symbol]
     'irony-completion-at-point-async)
-    ;; Only run auto-setup first time to be faster. However, it's not perfect because if opening a
-    ;; file in a different project root it will not auto-setup for the new CDB. But then use
-    ;; `irony-cdb-json-select'.
-    (when (not my-irony-cdb-loaded-time)
-      (setq my-irony-cdb-loaded-time (current-time))
-      (message "Irony CDB auto-setup...")
-      (irony-cdb-autosetup-compile-options)
-      (show-elapsed-time "Irony CDB auto-setup done in" my-irony-cdb-loaded-time (current-time))))
+  ;; Only run auto-setup first time to be faster. However, it's not perfect because if opening a
+  ;; file in a different project root it will not auto-setup for the new CDB. But then use
+  ;; `irony-cdb-json-select'.
+  (when (not my-irony-cdb-loaded-time)
+    (setq my-irony-cdb-loaded-time (current-time))
+    (message "Irony CDB auto-setup...")
+    (irony-cdb-autosetup-compile-options)
+    (show-elapsed-time "Irony CDB auto-setup done in" my-irony-cdb-loaded-time (current-time))))
 
 
 (req-package   company-irony
   :require (company company-irony-c-headers)
   :config
-  ;(add-hook 'c++-mode-hook 'irony-mode)
-  ;(add-hook 'c-mode-hook 'irony-mode)
-  ;(add-hook 'objc-mode-hook 'irony-mode)
+                                        ;(add-hook 'c++-mode-hook 'irony-mode)
+                                        ;(add-hook 'c-mode-hook 'irony-mode)
+                                        ;(add-hook 'objc-mode-hook 'irony-mode)
   (add-hook 'irony-mode-hook 'my-irony-mode-hook)
   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
   (eval-after-load 'company
@@ -555,18 +570,18 @@
                  (lambda ()
                    (irony-server-kill)
                    (irony-auto-kill))))
-;;  (add-hook 'irony-mode-hook 'irony-auto-kill)
+  ;;  (add-hook 'irony-mode-hook 'irony-auto-kill)
   
   (add-hook 'c++-mode-hook 'company-mode)
   (add-hook 'c-mode-hook 'company-mode)
   (add-hook 'objc-mode-hook 'company-mode))
 
 (req-package flycheck-irony
- :require irony flycheck
- :config
- (add-hook 'after-init-hook #'global-flycheck-mode)
- (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
- (add-hook 'flycheck-mode-hook 'flycheck-irony-setup))
+  :require irony flycheck
+  :config
+  (add-hook 'after-init-hook #'global-flycheck-mode)
+  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
+  (add-hook 'flycheck-mode-hook 'flycheck-irony-setup))
 
 ;; (req-package irony-eldoc
 ;;  :require irony
@@ -710,7 +725,7 @@
 
 (req-package clang-format
   :config
-  (global-set-key [C-M-tab] 'clang-format-region))
+  (global-set-key [C-M-tab] 'clang-format-dwim))
 
 
 (req-package  window-numbering
@@ -752,7 +767,7 @@
 (setq compilation-scroll-output t)
 (setq compilation-window-height 30
       compilation-scroll-output 'first-error
-;      compilation-skip-threshold 2 ; skip accros warnings
+                                        ;      compilation-skip-threshold 2 ; skip accros warnings
       compilation-always-kill t) ;; Don't ask, just start new compilation.
 
 ;; terminal colors
@@ -779,7 +794,7 @@
 (req-package diff-hl
   :require magit
   :config
-;  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+                                        ;  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   (add-hook 'prog-mode-hook 'diff-hl-mode))
 
 
@@ -792,8 +807,8 @@
 
 
 (req-package keyfreq
-             :config (keyfreq-mode 1)
-             (keyfreq-autosave-mode 1))
+  :config (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1))
 
 
 ;;;;;;;;;;;;; CMake
@@ -915,12 +930,12 @@ removed and then recreated."
 (req-package ace-isearch
   :require helm-swoop avy ace-jump-mode
   :config
-   (setq ace-isearch-input-idle-jump-delay 0.5
+  (setq ace-isearch-input-idle-jump-delay 0.5
         ace-isearch-function 'avy-goto-word-1
         ace-isearch-input-length 6 ; Invoke helm-swoop when >= 6.
         ace-isearch-function-from-isearch 'ace-isearch-helm-swoop-from-isearch
         ace-isearch-use-jump 'printing-char)
-   (global-ace-isearch-mode +1)
+  (global-ace-isearch-mode +1)
 
   ;; (define-key swoop-map (kbd "C-s") 'swoop-action-goto-line-next)
   ;; (define-key swoop-map (kbd "C-r") 'swoop-action-goto-line-prev)

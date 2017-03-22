@@ -182,7 +182,9 @@
 
 ;;;;;;;;; CUSTOM KEYBINDINGS
 
-(global-set-key (kbd "C-c o") 'ff-find-other-file)
+;; Do not jump to headers
+(global-set-key (kbd "C-c o")
+                '(lambda () (interactive) (ff-find-other-file nil t)))
 
 
 (setq compilation-window-height 30)
@@ -967,5 +969,20 @@ removed and then recreated."
   (autoload 'scad-mode "scad-mode" "A major mode for editing OpenSCAD code." t)
   (add-to-list 'auto-mode-alist '("\\.scad$" . scad-mode)))
 
+
+;; Jump to definition for multiple languages without configuration.
+(req-package dumb-jump
+  :require helm
+  :bind (("M-g j" . dumb-jump-go)
+         ("M-g o" . dumb-jump-go-other-window)
+         ("M-g e" . dumb-jump-go-prefer-external)
+         ("M-g x" . dumb-jump-go-prefer-external-other-window)
+         ("M-g q" . dumb-jump-quick-look)
+         ("M-g b" . dumb-jump-back))
+  :config
+  (setq dumb-jump-selector 'helm
+        dumb-jump-max-find-time 5))
+
+(add-hook 'prog-mode-hook 'dumb-jump-mode)
 
 (req-package-finish)

@@ -21,6 +21,7 @@
 ;; Garbage collect at every 20 MB allocated instead of the default 8 MB. This
 ;; speeds up various things.
 (setq gc-cons-threshold 20000000)
+(setq load-prefer-newer t)
 
 ;;a clock
 (setq display-time-day-and-date t)
@@ -33,7 +34,7 @@
   (let ((elapsed (float-time (time-subtract end start))))
     (message "%s %.3fs" msg elapsed)))
 
-                                        ; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
+;; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
 ;; week.
 (setq backup-dir "~/.emacs.d/backups")
 (unless (file-exists-p backup-dir)
@@ -122,6 +123,16 @@
 (dolist (hook '(auto-fill-mode-hook
                 prog-mode-hook))
   (add-hook hook (lambda () (setq fill-column global-fill-column))))
+
+;; Sensible window splitting should follow the fill column.
+(when window-system
+  (setq split-height-threshold global-fill-column
+        split-width-threshold (* 2 global-fill-column)))
+
+
+;; Auto-revert buffers when files change on disk.
+(setq auto-revert-verbose t)            ; announce when buffer is reverted.
+(global-auto-revert-mode t)
 
 ;;;;;;;;; MAC OS X SPECIFIC
 
@@ -742,7 +753,8 @@
 
 (req-package clang-format
   :config
-  (global-set-key [C-M-tab] 'clang-format-dwim))
+  (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim))
+
 
 
 (req-package  window-numbering
@@ -754,10 +766,10 @@
   (global-set-key (kbd "C-h C-m") 'discover-my-major)
   (global-set-key (kbd "C-h M-m") 'discover-my-mode))
 
-;; (req-package flycheck
-;;   :config
-;;   (add-hook 'after-init-hook #'global-flycheck-mode)
-;;   (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11"))))
+(req-package flycheck
+  :config
+  (add-hook 'after-init-hook #'global-flycheck-mode)
+  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11"))))
 
 ;; (require 'devdocs-lookup)
 ;; (devdocs-setup)
@@ -983,6 +995,10 @@ removed and then recreated."
   (setq dumb-jump-selector 'helm
         dumb-jump-max-find-time 5))
 
-(add-hook 'prog-mode-hook 'dumb-jump-mode)
+;; (add-hook 'prog-mode-hook
+;;           (lambda ()
+;;             (progn
+;;               (setq dumb-jump-mode t)
+;;               (define-key dumb-jump-mode-map (kbd "M-g j") 'dumb-jump-go))))
 
 (req-package-finish)

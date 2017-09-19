@@ -9,7 +9,7 @@
 (setq inhibit-startup-message t)	;;dont show the GNU splash screen
 (transient-mark-mode t)			;; show selection from mark
 (mouse-avoidance-mode 'jump)            ;; jump mouse away when typing
-(setq visible-bell nil)                 ;; turn off bip warnings
+(setq visible-bell 1)                   ;; turn off bip warnings
 (auto-compression-mode t)               ;; browse tar archives
 (put 'upcase-region 'disabled nil)      ;; enable ``upcase-region''
 (global-font-lock-mode t)               ;; syntax highlight
@@ -17,6 +17,11 @@
 (fset 'yes-or-no-p 'y-or-n-p)           ;; use 'y' instead of 'yes' etc.
 (size-indication-mode t)             ;; Show current buffer size
 
+
+(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-9"))
+;; set a default font
+(when (member "DejaVu Sans Mono" (font-family-list))
+  (set-face-attribute 'default nil :font "DejaVu Sans Mono"))
 
 ;; Garbage collect at every 20 MB allocated instead of the default 8 MB. This
 ;; speeds up various things.
@@ -103,13 +108,14 @@
  '(custom-safe-themes
    (quote
     ("3693403316f0127326fa08067c2e3013eda29216829e1478e1656ea4fbbc6560" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "49ad7c8d458074db7392f8b8a49235496e9228eb2fa6d3ca3a7aa9d23454efc6" "6a9606327ecca6e772fba6ef46137d129e6d1888dcfc65d0b9b27a7a00a4af20" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "3a727bdc09a7a141e58925258b6e873c65ccf393b2240c51553098ca93957723" "6a37be365d1d95fad2f4d185e51928c789ef7a4ccf17e7ca13ad63a8bf5b922f" "756597b162f1be60a12dbd52bab71d40d6a2845a3e3c2584c6573ee9c332a66e" default)))
+ '(eclim-eclipse-dirs '("D:\\tools\\Eclipse"))
+ '(eclim-executable "D:\\tools\\Eclipse\\eclim")
  '(magit-branch-arguments nil)
  '(magit-log-arguments (quote ("--graph" "--color" "--decorate" "-n256")))
  '(magit-push-arguments (quote ("--set-upstream")))
- '(org-agenda-files (quote ("~/orgs/luxdo.org")))
  '(package-selected-packages
    (quote
-    (yasnippet ack helm-projectile projectile helm-flx flx-ido cmake-mode keyfreq diff-hl highlight-current-line highlight-thing vlf discover-my-major window-numbering clang-format smart-mode-line fic-mode helm-gtags helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (eclim yasnippet ack helm-projectile projectile helm-flx flx-ido cmake-mode keyfreq diff-hl highlight-current-line highlight-thing vlf discover-my-major window-numbering clang-format smart-mode-line fic-mode helm-gtags helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -275,119 +281,6 @@
     (setq exec-path (split-string path-from-shell path-separator))))
 (set-exec-path-from-shell-path)
 
-;;;;;;;;; Luxion related
-
-;; Wraps a function with // ***.. before and after (the region selected). Both
-;; inserted lines with have a length fo 80 characters.
-(defun lux-wrap-function (start end)
-  "Put comments around Luxion function."
-  (interactive "r")
-  (let ((str (concat "// " (make-string (- 100 3) ?*) "\n")))
-    (save-excursion
-      (goto-char end)
-      (insert str)
-      (goto-char start)
-      (insert str))))
-
-(defun lux-fix-function-comments ()
-  "Fix all functions with an incorrect number of '// ***..' (or '=' or '-') around them."
-  (interactive)
-  (let* ((regexp "[ ]*\/\/[ ]*[\*\=\-]+")
-         (line-width global-fill-column)
-         (str (concat "// " (make-string (- line-width 3) ?*)))
-         (old-line)
-         (line-end))
-    (save-excursion
-      (goto-char (point-min))
-      (while (not (eobp))
-        (when (looking-at regexp)
-          ;; Replace with correct line.
-          (beginning-of-line)
-          (kill-line)
-          (insert str)
-
-          ;; Indent to fit with sorrounded scopes, if any.
-          (indent-for-tab-command)
-
-          ;; If the line exceeds `line-width` then kill the rest of line.
-          (end-of-line)
-          (setq line-end (current-column))
-          (beginning-of-line)
-          (setq old-line (line-number-at-pos))
-          (forward-char line-width)
-          (when (and (< (current-column) line-end)
-                     (= old-line (line-number-at-pos)))
-            (kill-line))
-          (goto-line old-line))
-        (forward-line))))) ;; Search next line.
-
-(defun lux-fix-function-curls ()
-  "Fix all functions with '// ***..' around it to have it's '{' be put after the second '//***..'."
-  (interactive)
-  (let* ((regexp-line "[ ]*\/\/[ ]*[\*]+")
-         (regexp-curl "{")
-         (line-width global-fill-column)
-         (str (concat "// " (make-string (- line-width 3) ?*)))
-         (line-one)
-         (line-two)
-         (flag nil))
-    (save-excursion
-      (goto-char (point-min))
-      (while (and (not (eobp))
-                  (not flag))
-        ;; Find line one.
-        (while (and (not (eobp))
-                    (not flag))
-          (when (looking-at regexp-line)
-            (setq line-one (line-number-at-pos))
-            (setq flag t))
-          (forward-line))
-
-        (unless (eobp)
-          (setq flag nil)
-          (forward-line)
-
-          ;; Find line two.
-          (while (and (not (eobp))
-                      (not flag))
-            (when (looking-at regexp-line)
-              (setq line-two (line-number-at-pos))
-              (setq flag t))
-            (forward-line))
-
-          (unless (eobp)
-            (setq flag nil)
-            (goto-line line-one)
-
-            ;; Find and remove the '{'.
-            (while (and (<= (line-number-at-pos) line-two)
-                        (not flag))
-              (when (looking-at regexp-curl)
-                (delete-char 1)
-                (cycle-spacing 0) ;; Remove any whitespace
-                (setq flag t))
-              (forward-char 1))
-
-            (unless (eobp)
-              (goto-line line-two)
-
-              ;; If deleted '{' then insert on new line after `line-two`.
-              (when flag
-                (end-of-line)
-                (insert "\n")
-                (insert regexp-curl))
-
-              (setq flag nil)
-              (forward-line))))))))
-
-(defun lux-fix-buffer ()
-  (interactive)
-  (lux-fix-function-curls)
-  ;;  (cleanup-region-or-buffer)
-  (lux-fix-function-comments)
-  (clang-format-buffer))
-
-
 (defun clang-format-dwim ()
   "Perform clang-format on region or buffer."
   (interactive)
@@ -397,16 +290,12 @@
       (clang-format-buffer))))
 
 ;; Bindings
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (local-set-key (kbd "C-M-l") 'lux-wrap-function)
-            (local-set-key (kbd "C-c l") 'lux-fix-buffer)))
 
 ;; Regressor tst
 (add-to-list 'auto-mode-alist '(".tst" . conf-mode))
 
 ;;;;;;;;; EMAIL
-(setq user-mail-address "jacob@luxion.com")
+(setq user-mail-address "jacob.toft.pedersen@beumergroup.com")
 
 ;;;;;;;;; IDO
 
@@ -486,8 +375,11 @@
 
 ;;;packages
 (require 'package)
-(add-to-list 'package-archives
-	     '("melpa" . "http://melpa.org/packages/") t)
+(setq package-archives
+      '(("gnu" . "http://elpa.gnu.org/packages/")
+;       ("melpa-stable" . "http://stable.melpa.org/packages/")
+       ("org" . "http://orgmode.org/elpa/")
+       ("melpa" . "http://melpa.org/packages/")))
 
 (package-initialize)
 (require 'req-package)
@@ -525,6 +417,14 @@
 
 (add-hook 'js-mode-hook (lambda () (setq js-indent-level 2)))
 
+;;; java
+
+
+(req-package eclim
+  :config
+  (setq eclimd-autostart t)
+  (add-hook 'java-mode-hook (lambda () (eclim-mode t))))
+
 
 
 ;;;;;;;;; C & C++
@@ -546,8 +446,6 @@
            (file (upcase file))
            (file (concat file "_")))
       (beginning-of-buffer)
-      ;;XXX todo insert ifdef CPP extern c stuff
-      (insert "// (c) Copyright 2003-2016 Luxion ApS - All Rights Reserved")
       (newline)
       (insert (concat "#ifndef " file)) 
       (newline)
@@ -740,21 +638,20 @@
   :config
   (setq uniquify-buffer-name-style 'forward))
 
-(req-package smart-mode-line
-  :config
-  (sml/setup)
-  (sml/apply-theme 'dark)
-  (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/keyshot_network" ":KS-NET:") t)
-  (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/" ":KS:") t)
-  (add-to-list 'sml/replacer-regexp-list '("^~/luxion" ":Luxion:") t)
-  (add-to-list 'sml/replacer-regexp-list '(".*/src/keyshot_network" ":ksnr:") t)
-  (add-to-list 'sml/replacer-regexp-list '(".*/test/keyshot_network" ":ksnr-test:") t)
-  )
+;; (req-package smart-mode-line
+;;   :config
+;;   (sml/setup)
+;;   (sml/apply-theme 'dark)
+;;   (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/keyshot_network" ":KS-NET:") t)
+;;   (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/" ":KS:") t)
+;;   (add-to-list 'sml/replacer-regexp-list '("^~/luxion" ":Luxion:") t)
+;;   (add-to-list 'sml/replacer-regexp-list '(".*/src/keyshot_network" ":ksnr:") t)
+;;   (add-to-list 'sml/replacer-regexp-list '(".*/test/keyshot_network" ":ksnr-test:") t)
+;;   )
 
 (req-package clang-format
   :config
   (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim))
-
 
 
 (req-package  window-numbering
@@ -1002,3 +899,16 @@ removed and then recreated."
 ;;               (define-key dumb-jump-mode-map (kbd "M-g j") 'dumb-jump-go))))
 
 (req-package-finish)
+
+(when (string-equal system-type "windows-nt")
+  (let (
+        (mypaths
+         '(
+           "C:/Users/jtp/AppData/Local/Programs/Python/Python36/"
+           "C:/Program Files/Git/bin"
+           "D:/tools/bin"
+           "D:/Tools/emacs/bin"
+           )))
+    (setenv "PATH" (mapconcat 'identity mypaths ";") )
+    (setq exec-path (append mypaths (list "." exec-directory)))))
+

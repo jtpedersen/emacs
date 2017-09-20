@@ -1,5 +1,5 @@
 ;;COMMON CONFIGURATIONS
-;;(setq debug-on-error t)
+;(setq debug-on-error t)
 (show-paren-mode t)			;; show matching parenthesis
 (column-number-mode t)			;; show current column
 (menu-bar-mode -1)			;; don't show menu-bar
@@ -34,6 +34,30 @@
 (display-time)
 
 (add-to-list 'load-path "~/.emacs.d/lisp")
+
+
+(if (string-equal system-type "windows-nt")
+  (let (
+        (mypaths
+         '(
+           "C:/Users/jtp/AppData/Local/Programs/Python/Python36/"
+           "C:/Program Files/Git/bin"
+           "D:/tools/bin"
+           "D:/Tools/emacs/bin"
+           )))
+    (setenv "PATH" (mapconcat 'identity mypaths ";") )
+    (setq exec-path (append mypaths (list "." exec-directory))))
+
+  ;; Set exec path to be the same as the one from the shell
+  (defun set-exec-path-from-shell-path()
+    "Set up Emacs' `exec-path' and PATH environment variable to match that used by the user's shell.
+  This is particularly useful under Mac OSX, where GUI apps are not started from a shell."
+    (interactive)
+    (let ((path-from-shell (replace-regexp-in-string "[ \t\n]*$" "" (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
+      (setenv "PATH" path-from-shell)
+      (setq exec-path (split-string path-from-shell path-separator))))
+  (set-exec-path-from-shell-path)
+    )
 
 (defun show-elapsed-time (msg start end)
   (let ((elapsed (float-time (time-subtract end start))))
@@ -196,7 +220,6 @@
 
 
 
-
 ;;;;;;;;; CUSTOM KEYBINDINGS
 
 ;; Do not jump to headers
@@ -262,7 +285,6 @@
         try-expand-line))
 
 ;;;;;;;;; FUNCTIONS
-
 ;; convert current buffer to unix EOLs
 (defun to-unix-eol ()
   "Change current buffer's line ending to unix convention."
@@ -271,15 +293,6 @@
     (set-buffer-file-coding-system 'unix) ; or 'mac or 'dos
     (save-buffer)))
 
-;; Set exec path to be the same as the one from the shell
-(defun set-exec-path-from-shell-path()
-  "Set up Emacs' `exec-path' and PATH environment variable to match that used by the user's shell.
-  This is particularly useful under Mac OSX, where GUI apps are not started from a shell."
-  (interactive)
-  (let ((path-from-shell (replace-regexp-in-string "[ \t\n]*$" "" (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
-    (setenv "PATH" path-from-shell)
-    (setq exec-path (split-string path-from-shell path-separator))))
-(set-exec-path-from-shell-path)
 
 (defun clang-format-dwim ()
   "Perform clang-format on region or buffer."
@@ -317,7 +330,6 @@
 ;; Remove Flyspell from some sub modes of text mode
                                         ;(dolist (hook '(change-log-mode-hook 
                                         ;                log-edit-mode-hook))
-                                        ;  (add-hook hook (lambda () (flyspell-mode -1))))
 
 ;; Change to danish dict
 (defun da-spell ()
@@ -373,6 +385,7 @@
 (add-to-list 'auto-mode-alist '("sites-\\(available\\|enabled\\)/" . apache-mode))
 
 
+
 ;;;packages
 (require 'package)
 (setq package-archives
@@ -383,7 +396,6 @@
 
 (package-initialize)
 (require 'req-package)
-
 
 ;; Closes *compilation* buffer after successful compilation, and otherwise when the failure was
 ;; fixed to compile, it restores the original window configuration.
@@ -420,11 +432,10 @@
 ;;; java
 
 
-(req-package eclim
-  :config
-  (setq eclimd-autostart t)
-  (add-hook 'java-mode-hook (lambda () (eclim-mode t))))
-
+;; (req-package eclim
+;;   :config
+;;   (setq eclimd-autostart t)
+;;   (add-hook 'java-mode-hook (lambda () (eclim-mode t))))
 
 
 ;;;;;;;;; C & C++
@@ -497,7 +508,6 @@
                    (irony-server-kill)
                    (irony-auto-kill))))
   ;;  (add-hook 'irony-mode-hook 'irony-auto-kill)
-  
   (add-hook 'c++-mode-hook 'company-mode)
   (add-hook 'c-mode-hook 'company-mode)
   (add-hook 'objc-mode-hook 'company-mode))
@@ -651,7 +661,8 @@
 
 (req-package clang-format
   :config
-  (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim))
+  (add-hook 'c++-mode-hook (lambda ()
+                             (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim))))
 
 
 (req-package  window-numbering
@@ -899,16 +910,3 @@ removed and then recreated."
 ;;               (define-key dumb-jump-mode-map (kbd "M-g j") 'dumb-jump-go))))
 
 (req-package-finish)
-
-(when (string-equal system-type "windows-nt")
-  (let (
-        (mypaths
-         '(
-           "C:/Users/jtp/AppData/Local/Programs/Python/Python36/"
-           "C:/Program Files/Git/bin"
-           "D:/tools/bin"
-           "D:/Tools/emacs/bin"
-           )))
-    (setenv "PATH" (mapconcat 'identity mypaths ";") )
-    (setq exec-path (append mypaths (list "." exec-directory)))))
-

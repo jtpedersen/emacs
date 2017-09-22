@@ -516,7 +516,7 @@
   :require irony flycheck
   :config
   (add-hook 'after-init-hook #'global-flycheck-mode)
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
+  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++14")))
   (add-hook 'flycheck-mode-hook 'flycheck-irony-setup))
 
 ;; (req-package irony-eldoc
@@ -567,8 +567,7 @@
   ;; Set defaults used by specific operations.
   (setq magit-merge-arguments '("--no-ff"))
   (setq magit-pull-arguments '("--rebase"))
-  (setq magit-cherry-pick-arguments '("-x"))
-  (setq magit-auto-revert-mode nil))
+  (setq magit-cherry-pick-arguments '("-x")))
 
 ;;;;;;; Mulitple cursors
 (req-package multiple-cursors

@@ -140,7 +140,7 @@
  '(org-agenda-files (quote ("d:/BGProjects/orgs/PN.org")))
  '(package-selected-packages
    (quote
-    (ac-emacs-eclim dumb-jump scad-preview scad-mode highlight-escape-sequences ace-jump-mode avy helm-swoop ace-isearch copy-as-format helm-ag markdown-mode eclim yasnippet ack helm-projectile projectile helm-flx flx-ido cmake-mode keyfreq diff-hl highlight-current-line highlight-thing vlf discover-my-major window-numbering clang-format smart-mode-line fic-mode helm-gtags helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (lua-mode ac-geiser dumb-jump geiser eclim yasnippet ack helm-projectile projectile helm-flx flx-ido cmake-mode keyfreq diff-hl highlight-current-line highlight-thing vlf discover-my-major window-numbering clang-format smart-mode-line fic-mode helm-gtags helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -534,7 +534,7 @@
   :require irony flycheck
   :config
   (add-hook 'after-init-hook #'global-flycheck-mode)
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
+  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++14")))
   (add-hook 'flycheck-mode-hook 'flycheck-irony-setup))
 
 ;; (req-package irony-eldoc
@@ -555,6 +555,7 @@
 ;;
 (req-package org
   :config
+  :require org-babel
   (define-key global-map "\C-ca" 'org-agenda)
   (setq org-log-done t)
   ;;
@@ -585,8 +586,7 @@
   ;; Set defaults used by specific operations.
   (setq magit-merge-arguments '("--no-ff"))
   (setq magit-pull-arguments '("--rebase"))
-  (setq magit-cherry-pick-arguments '("-x"))
-  (setq magit-auto-revert-mode nil))
+  (setq magit-cherry-pick-arguments '("-x")))
 
 ;;;;;;; Mulitple cursors
 (req-package multiple-cursors
@@ -907,6 +907,8 @@ removed and then recreated."
   (autoload 'scad-mode "scad-mode" "A major mode for editing OpenSCAD code." t)
   (add-to-list 'auto-mode-alist '("\\.scad$" . scad-mode)))
 
+(req-package geiser  )
+(req-package ac-geiser  )
 
 ;; Jump to definition for multiple languages without configuration.
 (req-package dumb-jump
@@ -926,5 +928,10 @@ removed and then recreated."
 ;;             (progn
 ;;               (setq dumb-jump-mode t)
 ;;               (define-key dumb-jump-mode-map (kbd "M-g j") 'dumb-jump-go))))
+
+(req-package lua-mode
+  :config
+  (autoload 'lua-mode "lua-mode" "A mode for editing lua code." t)
+  (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode)))
 
 (req-package-finish)

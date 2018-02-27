@@ -53,3 +53,5 @@ url/*
 /xslide-data.el
 /xslide-abbrev.el
 \#*
+session.*
+/#!*

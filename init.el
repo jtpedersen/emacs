@@ -35,7 +35,6 @@
 
 (add-to-list 'load-path "~/.emacs.d/lisp")
 
-
 (if (string-equal system-type "windows-nt")
   (let (
         (mypaths
@@ -140,7 +139,7 @@
  '(org-agenda-files (quote ("d:/BGProjects/orgs/PN.org")))
  '(package-selected-packages
    (quote
-    (lua-mode ac-geiser dumb-jump geiser eclim yasnippet ack helm-projectile projectile helm-flx flx-ido cmake-mode keyfreq diff-hl highlight-current-line highlight-thing vlf discover-my-major window-numbering clang-format smart-mode-line fic-mode helm-gtags helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (el-get lua-mode ac-geiser dumb-jump geiser eclim yasnippet ack helm-projectile projectile helm-flx flx-ido cmake-mode keyfreq diff-hl highlight-current-line highlight-thing vlf discover-my-major window-numbering clang-format smart-mode-line fic-mode helm-gtags helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -389,8 +388,8 @@
 (require 'package)
 (setq package-archives
       '(("gnu" . "http://elpa.gnu.org/packages/")
-;       ("melpa-stable" . "http://stable.melpa.org/packages/")
-       ("org" . "http://orgmode.org/elpa/")
+       ("melpa-stable" . "http://stable.melpa.org/packages/")
+       ("org" . "https://orgmode.org/elpa/")
        ("melpa" . "http://melpa.org/packages/")))
 
 (package-initialize)

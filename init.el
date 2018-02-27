@@ -1,5 +1,5 @@
 ;;COMMON CONFIGURATIONS
-;(setq debug-on-error t)
+(setq debug-on-error t)
 (show-paren-mode t)			;; show matching parenthesis
 (column-number-mode t)			;; show current column
 (menu-bar-mode -1)			;; don't show menu-bar
@@ -422,7 +422,6 @@
   (autoload 'python-mode "python-mode" "Mode for editing Python source files")
   (add-to-list 'auto-mode-alist '("\\.py" . python-mode)))
 
-
 ;;;;;;;;; JavaScript
 
 (add-hook 'js-mode-hook (lambda () (setq js-indent-level 2)))
@@ -553,13 +552,13 @@
 ;; ;;org mode
 ;;
 (req-package org
-  :config
   :require org-babel
+  :config
   (define-key global-map "\C-ca" 'org-agenda)
   (setq org-log-done t)
   ;;
   ;; Yes it's long... but more is better ;)
-  (setq org-clock-history-length 35)
+;  (setq org-clock-history-length 35)
   ;; Resume clocking task on clock-in if the clock is open
   (setq org-clock-in-resume t)
   ;;Change task state to STARTED when clocking in
@@ -568,14 +567,14 @@
   (add-hook 'org-mode-hook 'auto-fill-mode t)
   (add-hook 'org-mode-hook 'flyspell-mode t)
 
-  ;; babel
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((sh . t)
-     (python . t)
-     (emacs-lisp . t)
-     )))
-
+  ;; ;; babel
+  ;; (org-babel-do-load-languages
+  ;;  'org-babel-load-languages
+  ;;  '((sh . t)
+  ;;    (python . t)
+  ;;    (emacs-lisp . t)
+  ;;    )))
+  )
 
 ;;magit
 (req-package magit
@@ -851,7 +850,6 @@ removed and then recreated."
   :config
   ;; Add local snippets to override some of the defaults in elpa folder.
   (add-to-list 'yas-snippet-dirs yas-dir)
-  (add-to-list 'yas-snippet-dirs "~/srcs/yasnippet-snippets")
   (yas-global-mode 1))
 
 
@@ -871,29 +869,25 @@ removed and then recreated."
 
 
 (req-package markdown-mode
-  :ensure t
   :commands (markdown-mode gfm-mode)
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
   :init (setq markdown-command "multimarkdown"))
 
-(req-package copy-as-format
-  :config (global-set-key (kbd "C-c w s") 'copy-as-format-slack))
+;; (req-package ace-isearch
+;;   :require helm-swoop avy ace-jump-mode
+;;   :config
+;;   (setq ace-isearch-input-idle-jump-delay 0.5
+;;         ace-isearch-function 'avy-goto-word-1
+;;         ace-isearch-input-length 6 ; Invoke helm-swoop when >= 6.
+;;         ace-isearch-function-from-isearch 'ace-isearch-helm-swoop-from-isearch
+;;         ace-isearch-use-jump 'printing-char)
+;;   (global-ace-isearch-mode +1)
 
-(req-package ace-isearch
-  :require helm-swoop avy ace-jump-mode
-  :config
-  (setq ace-isearch-input-idle-jump-delay 0.5
-        ace-isearch-function 'avy-goto-word-1
-        ace-isearch-input-length 6 ; Invoke helm-swoop when >= 6.
-        ace-isearch-function-from-isearch 'ace-isearch-helm-swoop-from-isearch
-        ace-isearch-use-jump 'printing-char)
-  (global-ace-isearch-mode +1)
-
-  ;; (define-key swoop-map (kbd "C-s") 'swoop-action-goto-line-next)
-  ;; (define-key swoop-map (kbd "C-r") 'swoop-action-goto-line-prev)
-  )
+;;   ;; (define-key swoop-map (kbd "C-s") 'swoop-action-goto-line-next)
+;;   ;; (define-key swoop-map (kbd "C-r") 'swoop-action-goto-line-prev)
+;;   )
 
 (req-package highlight-escape-sequences
   :config
@@ -901,7 +895,7 @@ removed and then recreated."
   (hes-mode))
 
 (req-package scad-mode
-  :require 'scad-preview
+  :require scad-preview
   :config
   (autoload 'scad-mode "scad-mode" "A major mode for editing OpenSCAD code." t)
   (add-to-list 'auto-mode-alist '("\\.scad$" . scad-mode)))

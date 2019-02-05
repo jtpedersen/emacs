@@ -136,16 +136,16 @@
  '(magit-branch-arguments nil)
  '(magit-log-arguments (quote ("--graph" "--color" "--decorate" "-n256")))
  '(magit-push-arguments (quote ("--set-upstream")))
- '(org-agenda-files (quote ("d:/BGProjects/orgs/PN.org")))
+ '(org-agenda-files nil)
  '(package-selected-packages
    (quote
-    (el-get lua-mode ac-geiser dumb-jump geiser eclim yasnippet ack helm-projectile projectile helm-flx flx-ido cmake-mode keyfreq diff-hl highlight-current-line highlight-thing vlf discover-my-major window-numbering clang-format smart-mode-line fic-mode helm-gtags helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (helm-ag el-get lua-mode ac-geiser dumb-jump geiser eclim yasnippet ack helm-projectile projectile flx-ido cmake-mode keyfreq diff-hl vlf discover-my-major window-numbering clang-format smart-mode-line fic-mode helm-gtags helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(highlight-current-line-face ((t (:background "gray22")))))
+ )
 
 
 (setq global-fill-column 100)
@@ -306,7 +306,7 @@
 (add-to-list 'auto-mode-alist '(".qss" . javascript-mode))
 
 ;;;;;;;;; EMAIL
-(setq user-mail-address "jacob.toft.pedersen@beumergroup.com")
+(setq user-mail-address "jpedersen@roku.com")
 
 ;;;;;;;;; IDO
 
@@ -350,7 +350,7 @@
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.cc\\'" . c++-mode))
 
-;;;;;;;;; Text 
+;;;;;;;;; Text
 
 ;; set auto-fill-mode
 (add-hook 'text-mode-hook
@@ -384,16 +384,36 @@
 
 
 
-;;;packages
+(package-initialize)
 (require 'package)
+;packages
 (setq package-archives
       '(("gnu" . "http://elpa.gnu.org/packages/")
-       ("melpa-stable" . "http://stable.melpa.org/packages/")
-       ("org" . "https://orgmode.org/elpa/")
-       ("melpa" . "http://melpa.org/packages/")))
+       ("melpa-stable" . "http://stable.melpa.org/packages/")))
 
-(package-initialize)
-(require 'req-package)
+(defun require-package (package)
+  "refresh package archives, check package presence and install if it's not installed"
+  (if (null (require package nil t))
+      (progn (let* ((ARCHIVES (if (null package-archive-contents)
+                                  (progn (package-refresh-contents)
+                                         package-archive-contents)
+                                package-archive-contents))
+                    (AVAIL (assoc package ARCHIVES)))
+               (if AVAIL
+                   (package-install package)))
+             (require package))))
+
+;; The "backbone" uses req-package.
+(require-package 'use-package)
+(require 'use-package)
+
+(use-package req-package
+  :ensure t
+  :config
+(req-package--log-set-level 'debug))
+
+
+
 
 ;; Closes *compilation* buffer after successful compilation, and otherwise when the failure was
 ;; fixed to compile, it restores the original window configuration.
@@ -425,33 +445,6 @@
 ;;;;;;;;; JavaScript
 
 (add-hook 'js-mode-hook (lambda () (setq js-indent-level 2)))
-
-;;; java
-
-
-(req-package eclim
-  :require (ac-emacs-eclim)
-  :config
-;  (setq eclimd-autostart t)
-  (setq help-at-pt-display-when-idle t)
-  (setq help-at-pt-timer-delay 0.1)
-  (help-at-pt-set-timer)
-  ;; regular auto-complete initialization
-  (require 'auto-complete-config)
-  (ac-config-default)
-
-  ;; add the emacs-eclim source
-  ;; (require 'ac-emacs-eclim-source)
-  ;; (ac-emacs-eclim-config)
-  (ac-emacs-eclim-config)
-  (add-hook 'java-mode-hook (lambda ()
-                              (eclim-mode t)))
-  (add-hook 'eclim-mode-hook (lambda ()
-                             (local-set-key (kbd "C-,") 'eclim-problems-correct)
-                             (local-set-key (kbd "C-.") 'eclim-problems-next-same-file))))
-
-
-
 
 
 ;;;;;;;;; C & C++
@@ -551,10 +544,9 @@
 ;; ;;
 ;; ;;org mode
 ;;
-(req-package org
-  :require org-babel
+(use-package org
+  :ensure t
   :config
-  (define-key global-map "\C-ca" 'org-agenda)
   (setq org-log-done t)
   ;;
   ;; Yes it's long... but more is better ;)
@@ -566,49 +558,33 @@
   ;; writing hooks
   (add-hook 'org-mode-hook 'auto-fill-mode t)
   (add-hook 'org-mode-hook 'flyspell-mode t)
-
-  ;; ;; babel
-  ;; (org-babel-do-load-languages
-  ;;  'org-babel-load-languages
-  ;;  '((sh . t)
-  ;;    (python . t)
-  ;;    (emacs-lisp . t)
-  ;;    )))
+  :bind
+  ( ("\C-ca" . org-agenda) )
   )
 
 ;;magit
 (req-package magit
+  :ensure t
   :config
-  (global-set-key "\C-xg" 'magit-status)
   (add-hook 'magit-mode-hook 'magit-load-config-extensions)
   ;; Set defaults used by specific operations.
   (setq magit-merge-arguments '("--no-ff"))
   (setq magit-pull-arguments '("--rebase"))
-  (setq magit-cherry-pick-arguments '("-x")))
+  (setq magit-cherry-pick-arguments '("-x"))
+  :bind (( "C-x g" . magit-status)))
+
 
 ;;;;;;; Mulitple cursors
-(req-package multiple-cursors
+(use-package multiple-cursors
+  :ensure t
   :config
-  (global-set-key (kbd "C->") 'mc/mark-next-like-this)
-  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-  (global-set-key (kbd "C-;") 'mc/mark-all-dwim)
-  )
-
-;;;;;;;;;;;;; HELM
-
-(req-package helm
-  :require recentf
-  :config
-  (setq helm-recentf-fuzzy-match t)
-  (setq helm-ff-file-name-history-use-recentf t)
-  (global-set-key (kbd "M-x") 'helm-M-x)
-  (global-set-key (kbd "M-y") 'helm-show-kill-ring)
-  (global-set-key (kbd "C-x b") 'helm-mini)
-  (global-set-key "\C-xr" 'helm-recentf))
+  :bind(( "C->"     . mc/mark-next-like-this)
+        ( "C-<"     . mc/mark-previous-like-this)
+        ( "C-c C-<" . mc/mark-all-like-this)
+        ( "C-;" . mc/mark-all-dwim)))
 
 ;; recentf
-(req-package recentf
+(use-package recentf
   :config
   (setq recentf-max-saved-items 200
         ;; Cleanup recent files only when Emacs is idle, but not when the mode
@@ -624,7 +600,23 @@
                               ".*-autoloads\\.el\\'"))
   (recentf-mode))
 
-(req-package helm-gtags
+
+;;;;;;;;;;;;; HELM
+
+
+(use-package helm
+  :ensure t
+  :config
+  (setq helm-recentf-fuzzy-match t)
+  (setq helm-ff-file-name-history-use-recentf t)
+  :bind (
+         ("M-x"   . helm-M-x)
+         ("M-y"   . helm-show-kill-ring)
+         ("C-x b" . helm-mini)
+         ("C-x r" . helm-recentf)))
+
+
+(use-package helm-gtags
   :config
   ;; Enable helm-gtags-mode
   (add-hook 'c-mode-hook 'helm-gtags-mode)
@@ -651,7 +643,7 @@
 (add-to-list 'auto-mode-alist '("\\.ino$" . c++-mode))
 
 ;; fixme in comments
-(req-package fic-mode
+(use-package fic-mode
   :config
   (add-to-list 'fic-highlighted-words '"XXX")
   (add-hook 'c++-mode-hook 'fic-mode))
@@ -660,37 +652,29 @@
 (add-to-list 'auto-mode-alist '("\\.log\\'" . auto-revert-mode))
 
 
-(req-package uniquify
+(use-package uniquify
   :config
   (setq uniquify-buffer-name-style 'forward))
 
-;; (req-package smart-mode-line
-;;   :config
-;;   (sml/setup)
-;;   (sml/apply-theme 'dark)
-;;   (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/keyshot_network" ":KS-NET:") t)
-;;   (add-to-list 'sml/replacer-regexp-list '("^~/luxion/keyshot/" ":KS:") t)
-;;   (add-to-list 'sml/replacer-regexp-list '("^~/luxion" ":Luxion:") t)
-;;   (add-to-list 'sml/replacer-regexp-list '(".*/src/keyshot_network" ":ksnr:") t)
-;;   (add-to-list 'sml/replacer-regexp-list '(".*/test/keyshot_network" ":ksnr-test:") t)
-;;   )
-
-(req-package clang-format
+(use-package clang-format
   :config
   (add-hook 'c++-mode-hook (lambda ()
                              (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim))))
 
 
-(req-package  window-numbering
+(use-package  window-numbering
+  :ensure t
   :config
   (window-numbering-mode 't))
 
-(req-package discover-my-major
+(use-package discover-my-major
+  :ensure t
   :config
   (global-set-key (kbd "C-h C-m") 'discover-my-major)
   (global-set-key (kbd "C-h M-m") 'discover-my-mode))
 
-(req-package flycheck
+(use-package flycheck
+  :ensure t
   :config
   (add-hook 'after-init-hook #'global-flycheck-mode)
   (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11"))))
@@ -724,7 +708,8 @@
       compilation-always-kill t) ;; Don't ask, just start new compilation.
 
 ;; terminal colors
-(req-package ansi-color
+(use-package ansi-color
+  :ensure t
   :config
   (defun colorize-compilation-buffer ()
     (toggle-read-only)
@@ -733,21 +718,10 @@
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
 
 
-(req-package highlight-thing
+(use-package diff-hl
+  :ensure t
+  :requires magit
   :config
-  (setq highlight-thing-delay-seconds 0.8)
-  (setq highlight-thing-what-thing 'symbol)
-  (setq highlight-thing-case-sensitive-p t)
-  (add-hook 'prog-mode-hook 'highlight-thing-mode))
-
-(req-package highlight-current-line
-  :config
-  (setq highlight-current-line-globally t))
-
-(req-package diff-hl
-  :require magit
-  :config
-                                        ;  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   (add-hook 'prog-mode-hook 'diff-hl-mode))
 
 
@@ -759,13 +733,15 @@
 (add-hook 'prog-mode-hook 'whitespace-mode)
 
 
-(req-package keyfreq
+(use-package keyfreq
+  :ensure t
   :config (keyfreq-mode 1)
   (keyfreq-autosave-mode 1))
 
 
 ;;;;;;;;;;;;; CMake
-(req-package cmake-mode
+(use-package cmake-mode
+  :ensure t
   :config
   (setq auto-mode-alist
         (append '(("CMakeLists\\.txt\\'" . cmake-mode)
@@ -778,8 +754,12 @@
 ;;   :config
 ;;   (add-hook 'text-mode-hook 'auto-dictionary-mode))
 
-(req-package flx-ido
-  :require flx
+(use-package flx
+  :ensure t)
+
+(use-package flx-ido
+  :ensure t
+  :requires flx
   :config
   (ido-mode 1)
   (ido-everywhere 1)
@@ -788,13 +768,8 @@
   (setq ido-enable-flex-matching t)
   (setq ido-use-faces nil))
 
-(req-package helm-flx
-  :require (helm flx)
-  :config
-  ;; Use flx for better search results.
-  (helm-flx-mode +1))
-
-(req-package projectile
+(use-package projectile
+  :ensure t
   :init
   (setq projectile-keymap-prefix (kbd "C-x p"))
   (setq projectile-mode-line "ρ")
@@ -802,51 +777,11 @@
   :config
   (projectile-global-mode))
 
-(req-package helm-projectile
-  :require (projectile ack)
-  :config
-  (setq helm-projectile-fuzzy-match t)
-  (setq projectile-switch-project-action 'helm-projectile-find-file)
-
-  ;; Use helm-projectile alternatives.
-  (defun msk/projectile-define-prefix-key (key func)
-    (define-key projectile-mode-map
-      (kbd (concat projectile-keymap-prefix key)) func))
-  (msk/projectile-define-prefix-key "f" 'helm-projectile-find-file)
-  (msk/projectile-define-prefix-key "d" 'helm-projectile-find-dir)
-  (msk/projectile-define-prefix-key "o" 'helm-projectile-find-other-file)
-  (msk/projectile-define-prefix-key "a" 'helm-projectile-ag)
-  (msk/projectile-define-prefix-key "p" 'helm-projectile-switch-project)
-  (msk/projectile-define-prefix-key "b" 'helm-projectile-switch-to-buffer)
-  (msk/projectile-define-prefix-key "r" 'helm-projectile-recentf)
-
-  (defun msk/helm-update-gtags (arg)
-    "Update gtags for all files or create if they don't already
-exist. When given the prefix argument present gtags will be
-removed and then recreated."
-    (interactive "P")
-    (let ((gtags-file (concat (projectile-project-root) "GTAGS"))
-          (grtags-file (concat (projectile-project-root) "GRTAGS"))
-          (gpath-file (concat (projectile-project-root) "GPATH")))
-      (progn
-        (when arg
-          (message "Removing gtags..")
-          (delete-file gtags-file)
-          (delete-file grtags-file)
-          (delete-file gpath-file))
-        (if (file-exists-p gtags-file)
-            (progn
-              (message "Updating gtags..")
-              (universal-argument)
-              (helm-gtags-update-tags))
-          (progn
-            (message "Creating gtags..")
-            (helm-gtags-create-tags (projectile-project-root) "default"))))))
-  (msk/projectile-define-prefix-key "R" 'msk/helm-update-gtags))
 
 
 (defconst yas-dir (concat user-emacs-directory "snippets"))
-(req-package yasnippet
+(use-package yasnippet
+  :ensure t
   :config
   ;; Add local snippets to override some of the defaults in elpa folder.
   (add-to-list 'yas-snippet-dirs yas-dir)
@@ -862,18 +797,19 @@ removed and then recreated."
 
 (add-hook 'find-file-hook 'sm-try-smerge)
 
-(req-package helm-ag
-  :require helm
+(use-package helm-ag
+  :ensure t
+  :requires helm
   :config
   (setq helm-ag-base-command "ag --nocolor --nogroup --smart-case --stats"))
 
 
-(req-package markdown-mode
-  :commands (markdown-mode gfm-mode)
-  :mode (("README\\.md\\'" . gfm-mode)
-         ("\\.md\\'" . markdown-mode)
-         ("\\.markdown\\'" . markdown-mode))
-  :init (setq markdown-command "multimarkdown"))
+;; (use-package markdown-mode
+;;   :commands (markdown-mode gfm-mode)
+;;   :mode (("README\\.md\\'" . gfm-mode)
+;;          ("\\.md\\'" . markdown-mode)
+;;          ("\\.markdown\\'" . markdown-mode))
+;;   :init (setq markdown-command "multimarkdown"))
 
 ;; (req-package ace-isearch
 ;;   :require helm-swoop avy ace-jump-mode
@@ -889,32 +825,32 @@ removed and then recreated."
 ;;   ;; (define-key swoop-map (kbd "C-r") 'swoop-action-goto-line-prev)
 ;;   )
 
-(req-package highlight-escape-sequences
-  :config
-  ;; Has its own `hes-mode-alist' that specifies which modes it supports.
-  (hes-mode))
+;; (req-package highlight-escape-sequences
+;;   :config
+;;   ;; Has its own `hes-mode-alist' that specifies which modes it supports.
+;;   (hes-mode))
 
-(req-package scad-mode
-  :require scad-preview
-  :config
-  (autoload 'scad-mode "scad-mode" "A major mode for editing OpenSCAD code." t)
-  (add-to-list 'auto-mode-alist '("\\.scad$" . scad-mode)))
+;; (req-package scad-mode
+;;   :require scad-preview
+;;   :config
+;;   (autoload 'scad-mode "scad-mode" "A major mode for editing OpenSCAD code." t)
+;;   (add-to-list 'auto-mode-alist '("\\.scad$" . scad-mode)))
 
-(req-package geiser  )
-(req-package ac-geiser  )
+;; (req-package geiser  )
+;; (req-package ac-geiser  )
 
-;; Jump to definition for multiple languages without configuration.
-(req-package dumb-jump
-  :require helm
-  :bind (("M-g j" . dumb-jump-go)
-         ("M-g o" . dumb-jump-go-other-window)
-         ("M-g e" . dumb-jump-go-prefer-external)
-         ("M-g x" . dumb-jump-go-prefer-external-other-window)
-         ("M-g q" . dumb-jump-quick-look)
-         ("M-g b" . dumb-jump-back))
-  :config
-  (setq dumb-jump-selector 'helm
-        dumb-jump-max-find-time 5))
+;; ;; Jump to definition for multiple languages without configuration.
+;; (req-package dumb-jump
+;;   :require helm
+;;   :bind (("M-g j" . dumb-jump-go)
+;;          ("M-g o" . dumb-jump-go-other-window)
+;;          ("M-g e" . dumb-jump-go-prefer-external)
+;;          ("M-g x" . dumb-jump-go-prefer-external-other-window)
+;;          ("M-g q" . dumb-jump-quick-look)
+;;          ("M-g b" . dumb-jump-back))
+;;   :config
+;;   (setq dumb-jump-selector 'helm
+;;         dumb-jump-max-find-time 5))
 
 ;; (add-hook 'prog-mode-hook
 ;;           (lambda ()
@@ -922,7 +858,7 @@ removed and then recreated."
 ;;               (setq dumb-jump-mode t)
 ;;               (define-key dumb-jump-mode-map (kbd "M-g j") 'dumb-jump-go))))
 
-(req-package lua-mode
+(use-package lua-mode
   :config
   (autoload 'lua-mode "lua-mode" "A mode for editing lua code." t)
   (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode)))

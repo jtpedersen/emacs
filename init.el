@@ -123,6 +123,7 @@
 
 (global-set-key (kbd "C-x w") 'sudo-find-current)
 
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -136,16 +137,17 @@
  '(magit-branch-arguments nil)
  '(magit-log-arguments (quote ("--graph" "--color" "--decorate" "-n256")))
  '(magit-push-arguments (quote ("--set-upstream")))
- '(org-agenda-files nil)
+ '(org-agenda-files (quote ("d:/BGProjects/orgs/PN.org")))
  '(package-selected-packages
    (quote
-    (helm-ag el-get lua-mode ac-geiser dumb-jump geiser eclim yasnippet ack helm-projectile projectile flx-ido cmake-mode keyfreq diff-hl vlf discover-my-major window-numbering clang-format smart-mode-line fic-mode helm-gtags helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (bury-successful-compilation el-get yasnippet ack helm-projectile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(highlight-current-line-face ((t (:background "gray22")))))
+
 
 
 (setq global-fill-column 100)
@@ -403,31 +405,25 @@
                    (package-install package)))
              (require package))))
 
-;; The "backbone" uses req-package.
 (require-package 'use-package)
 (require 'use-package)
 
-(use-package req-package
+;Closes *compilation* buffer after successful compilation, and otherwise when the failure was fixed
+;to compile, it restores the original window configuration.
+(use-package bury-successful-compilation
   :ensure t
   :config
-(req-package--log-set-level 'debug))
-
-
-
-
-;; Closes *compilation* buffer after successful compilation, and otherwise when the failure was
-;; fixed to compile, it restores the original window configuration.
-;; (req-package bury-successful-compilation
-;;   :config
-;;   (add-hook 'prog-mode-hook 'bury-successful-compilation))
+  (add-hook 'prog-mode-hook 'bury-successful-compilation))
 
 ;; magic return to where you left from
-(req-package saveplace
+(use-package saveplace
+  :ensure t
   :config
   (setq-default save-place t)
   (setq save-place-file (concat user-emacs-directory "saveplace.txt" )))
 ;; Saves mini buffer history including search and kill ring values, and compile history.
-(req-package savehist
+(use-package savehist
+  :ensure t
   :config
   (setq savehist-additional-variables
         '(search-ring regexp-search-ring kill-ring compile-history))
@@ -437,13 +433,13 @@
 
 
 ;;;;;;;;; Python-mode
-(req-package python-mode
+(use-package python-mode
+  :ensure t
   :config
   (autoload 'python-mode "python-mode" "Mode for editing Python source files")
   (add-to-list 'auto-mode-alist '("\\.py" . python-mode)))
 
 ;;;;;;;;; JavaScript
-
 (add-hook 'js-mode-hook (lambda () (setq js-indent-level 2)))
 
 
@@ -496,42 +492,6 @@
     (show-elapsed-time "Irony CDB auto-setup done in" my-irony-cdb-loaded-time (current-time))))
 
 
-(req-package   company-irony
-  :require (company company-irony-c-headers)
-  :config
-                                        ;(add-hook 'c++-mode-hook 'irony-mode)
-                                        ;(add-hook 'c-mode-hook 'irony-mode)
-                                        ;(add-hook 'objc-mode-hook 'irony-mode)
-  (add-hook 'irony-mode-hook 'my-irony-mode-hook)
-  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-  (eval-after-load 'company
-    '(add-to-list 'company-backends 'company-irony))
-  ;; (optional) adds CC special commands to `company-begin-commands' in order to
-  ;; trigger completion at interesting places, such as after scope operator
-  ;;     std::|
-  ;;  (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-  (defun irony-auto-kill ()
-    (interactive)
-    (run-at-time "50 sec" nil
-                 (lambda ()
-                   (irony-server-kill)
-                   (irony-auto-kill))))
-  ;;  (add-hook 'irony-mode-hook 'irony-auto-kill)
-  (add-hook 'c++-mode-hook 'company-mode)
-  (add-hook 'c-mode-hook 'company-mode)
-  (add-hook 'objc-mode-hook 'company-mode))
-
-(req-package flycheck-irony
-  :require irony flycheck
-  :config
-  (add-hook 'after-init-hook #'global-flycheck-mode)
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++14")))
-  (add-hook 'flycheck-mode-hook 'flycheck-irony-setup))
-
-;; (req-package irony-eldoc
-;;  :require irony
-;;  :config
-;;  (add-hook 'irony-mode-hook 'irony-eldoc))
 
 ;; Elisp
 (add-hook 'emacs-lisp-mode-hook
@@ -563,7 +523,7 @@
   )
 
 ;;magit
-(req-package magit
+(use-package magit
   :ensure t
   :config
   (add-hook 'magit-mode-hook 'magit-load-config-extensions)
@@ -617,6 +577,7 @@
 
 
 (use-package helm-gtags
+  :ensure t
   :config
   ;; Enable helm-gtags-mode
   (add-hook 'c-mode-hook 'helm-gtags-mode)
@@ -635,19 +596,10 @@
        (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack))))
 
 
-
-
 ;; ;; maya mel - mode
 (add-to-list 'auto-mode-alist '("\\.mel$" . c++-mode))
 ;; arduino files
 (add-to-list 'auto-mode-alist '("\\.ino$" . c++-mode))
-
-;; fixme in comments
-(use-package fic-mode
-  :config
-  (add-to-list 'fic-highlighted-words '"XXX")
-  (add-hook 'c++-mode-hook 'fic-mode))
-
 ;; ala tail -f for log files
 (add-to-list 'auto-mode-alist '("\\.log\\'" . auto-revert-mode))
 
@@ -656,10 +608,11 @@
   :config
   (setq uniquify-buffer-name-style 'forward))
 
-(use-package clang-format
-  :config
-  (add-hook 'c++-mode-hook (lambda ()
-                             (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim))))
+;; (use-package clang-format
+;;   :ensure t
+;;   :config
+;;   (add-hook 'c++-mode-hook (lambda ()
+;;                              (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim))))
 
 
 (use-package  window-numbering
@@ -693,12 +646,6 @@
 ;;             ;; (flyspell-prog-mode)
 ;;             (local-set-key "\C-cd" #'devdocs-lookup-python)))
 
-
-
-(req-package vlf
-  :config
-  (require 'vlf-setup)
-  (setq vlf-application 'dont-ask))
 
 ;;;;; COMPILATION
 (setq compilation-scroll-output t)
@@ -803,64 +750,9 @@
   :config
   (setq helm-ag-base-command "ag --nocolor --nogroup --smart-case --stats"))
 
-
-;; (use-package markdown-mode
-;;   :commands (markdown-mode gfm-mode)
-;;   :mode (("README\\.md\\'" . gfm-mode)
-;;          ("\\.md\\'" . markdown-mode)
-;;          ("\\.markdown\\'" . markdown-mode))
-;;   :init (setq markdown-command "multimarkdown"))
-
-;; (req-package ace-isearch
-;;   :require helm-swoop avy ace-jump-mode
-;;   :config
-;;   (setq ace-isearch-input-idle-jump-delay 0.5
-;;         ace-isearch-function 'avy-goto-word-1
-;;         ace-isearch-input-length 6 ; Invoke helm-swoop when >= 6.
-;;         ace-isearch-function-from-isearch 'ace-isearch-helm-swoop-from-isearch
-;;         ace-isearch-use-jump 'printing-char)
-;;   (global-ace-isearch-mode +1)
-
-;;   ;; (define-key swoop-map (kbd "C-s") 'swoop-action-goto-line-next)
-;;   ;; (define-key swoop-map (kbd "C-r") 'swoop-action-goto-line-prev)
-;;   )
-
-;; (req-package highlight-escape-sequences
-;;   :config
-;;   ;; Has its own `hes-mode-alist' that specifies which modes it supports.
-;;   (hes-mode))
-
-;; (req-package scad-mode
-;;   :require scad-preview
-;;   :config
-;;   (autoload 'scad-mode "scad-mode" "A major mode for editing OpenSCAD code." t)
-;;   (add-to-list 'auto-mode-alist '("\\.scad$" . scad-mode)))
-
-;; (req-package geiser  )
-;; (req-package ac-geiser  )
-
-;; ;; Jump to definition for multiple languages without configuration.
-;; (req-package dumb-jump
-;;   :require helm
-;;   :bind (("M-g j" . dumb-jump-go)
-;;          ("M-g o" . dumb-jump-go-other-window)
-;;          ("M-g e" . dumb-jump-go-prefer-external)
-;;          ("M-g x" . dumb-jump-go-prefer-external-other-window)
-;;          ("M-g q" . dumb-jump-quick-look)
-;;          ("M-g b" . dumb-jump-back))
-;;   :config
-;;   (setq dumb-jump-selector 'helm
-;;         dumb-jump-max-find-time 5))
-
-;; (add-hook 'prog-mode-hook
-;;           (lambda ()
-;;             (progn
-;;               (setq dumb-jump-mode t)
-;;               (define-key dumb-jump-mode-map (kbd "M-g j") 'dumb-jump-go))))
-
 (use-package lua-mode
+  :ensure t
   :config
   (autoload 'lua-mode "lua-mode" "A mode for editing lua code." t)
   (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode)))
 
-(req-package-finish)

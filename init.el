@@ -18,7 +18,7 @@
 (size-indication-mode t)             ;; Show current buffer size
 
 
-(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-9"))
+(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-12"))
 ;; set a default font
 (when (member "DejaVu Sans Mono" (font-family-list))
   (set-face-attribute 'default nil :font "DejaVu Sans Mono"))
@@ -121,6 +121,8 @@
   (interactive)
   (sudo-find-file (buffer-file-name)))
 
+;(setq tramp-default-method "ssh")
+
 (global-set-key (kbd "C-x w") 'sudo-find-current)
 
 
@@ -140,7 +142,7 @@
  '(org-agenda-files (quote ("d:/BGProjects/orgs/PN.org")))
  '(package-selected-packages
    (quote
-    (bury-successful-compilation el-get yasnippet ack helm-projectile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projectile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -326,10 +328,6 @@
 ;; Flyspell activation for text mode
 (add-hook 'text-mode-hook
           (lambda () (flyspell-mode t)))
-
-;; Remove Flyspell from some sub modes of text mode
-                                        ;(dolist (hook '(change-log-mode-hook 
-                                        ;                log-edit-mode-hook))
 
 ;; Change to danish dict
 (defun da-spell ()
@@ -518,6 +516,9 @@
   ;; writing hooks
   (add-hook 'org-mode-hook 'auto-fill-mode t)
   (add-hook 'org-mode-hook 'flyspell-mode t)
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "STARTED(s)" "|" "ABORTED(a)" "DONE(d)")))
+
   :bind
   ( ("\C-ca" . org-agenda) )
   )
@@ -755,4 +756,5 @@
   :config
   (autoload 'lua-mode "lua-mode" "A mode for editing lua code." t)
   (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode)))
+
 

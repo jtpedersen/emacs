@@ -603,17 +603,17 @@
 (add-to-list 'auto-mode-alist '("\\.ino$" . c++-mode))
 ;; ala tail -f for log files
 (add-to-list 'auto-mode-alist '("\\.log\\'" . auto-revert-mode))
-
+;; BitBake files
+(add-to-list 'auto-mode-alist '("\\.bb$" . sh-mode))
 
 (use-package uniquify
   :config
   (setq uniquify-buffer-name-style 'forward))
 
-;; (use-package clang-format
-;;   :ensure t
-;;   :config
-;;   (add-hook 'c++-mode-hook (lambda ()
-;;                              (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim))))
+;; load the clang-format module
+(require 'clang-format)
+(add-hook 'c++-mode-hook (lambda ()
+                           (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim)))
 
 
 (use-package  window-numbering

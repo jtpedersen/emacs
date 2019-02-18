@@ -55,3 +55,6 @@ url/*
 \#*
 session.*
 /#!*
+auto-save-list/
+backups/
+/ido.last

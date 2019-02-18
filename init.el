@@ -518,7 +518,7 @@
   (add-hook 'org-mode-hook 'flyspell-mode t)
   (setq org-todo-keywords
         '((sequence "TODO(t)" "STARTED(s)" "|" "ABORTED(a)" "DONE(d)")))
-
+  (require 'ox-confluence)
   :bind
   ( ("\C-ca" . org-agenda) )
   )

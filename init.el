@@ -457,17 +457,15 @@
   (save-excursion
     (let* ((file (replace-regexp-in-string "[^0-9a-zA-z]" "_" 
                                            (buffer-name)))
-           (file (upcase file))
-           (file (concat file "_")))
+           (file (replace-regexp-in-string ".h" "" file))
+           (file (concat file "_" (shell-command-to-string "openssl rand -hex 8"))))
       (beginning-of-buffer)
-      (newline)
-      (insert (concat "#ifndef " file)) 
-      (newline)
+      (insert (concat "#if !defined " file)) 
       (insert (concat "#define " file))
       (newline 2)
       (end-of-buffer)
       (newline)
-      (insert (concat "#endif /* !" file " */"))
+      (insert (concat "#endif // " file ))
       (newline))))
 
 ;; cppcheck --template='{file}:{line}:{severity}:{message}' --quiet <filename>
@@ -722,6 +720,8 @@
   (setq projectile-keymap-prefix (kbd "C-x p"))
   (setq projectile-mode-line "ρ")
   (setq projectile-enable-caching t)
+  (setq projectile-file-exists-remote-cache-expire (* 10 60))
+  (setq projectile-indexing-method 'alien)
   :config
   (projectile-global-mode))
 

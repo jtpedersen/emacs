@@ -142,7 +142,7 @@
  '(org-agenda-files (quote ("d:/BGProjects/orgs/PN.org")))
  '(package-selected-packages
    (quote
-    (lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projectile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projectile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -743,4 +743,11 @@
   (autoload 'lua-mode "lua-mode" "A mode for editing lua code." t)
   (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode)))
 
+(use-package plantuml-mode
+  :ensure t
+  :config
+  (autoload 'plantuml-mode "plantuml-mode" "A mode for editing plantuml code." t)
+  (add-to-list 'auto-mode-alist '("\\.uml\\'" . plantuml-mode))
+  ;(add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+  )
 

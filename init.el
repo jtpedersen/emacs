@@ -1,5 +1,5 @@
 ;;COMMON CONFIGURATIONS
-(setq debug-on-error t)
+;(setq debug-on-error t)
 (show-paren-mode t)			;; show matching parenthesis
 (column-number-mode t)			;; show current column
 (menu-bar-mode -1)			;; don't show menu-bar
@@ -368,21 +368,6 @@
 (autoload 'css-mode "css-mode" "CSS mode." t)
 (setq auto-mode-alist (append '(("\\.css$" . css-mode)) auto-mode-alist))
 
-;;;;;;;;; Diff-mode
-
-;; (autoload 'diff-mode "diff-mode" "Diff major mode" t)
-;; (add-to-list 'auto-mode-alist '("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode))
-
-;;;;;;;;; Apache-mode
-
-(autoload 'apache-mode "apache-mode" nil t)
-(add-to-list 'auto-mode-alist '("\\.htaccess\\'"   . apache-mode))
-(add-to-list 'auto-mode-alist '("httpd\\.conf\\'"  . apache-mode))
-(add-to-list 'auto-mode-alist '("srm\\.conf\\'"    . apache-mode))
-(add-to-list 'auto-mode-alist '("access\\.conf\\'" . apache-mode))
-(add-to-list 'auto-mode-alist '("sites-\\(available\\|enabled\\)/" . apache-mode))
-
-
 
 (package-initialize)
 (require 'package)
@@ -448,7 +433,8 @@
             ;; (flyspell-prog-mode)
             (setq tab-width 2)
             (setq c-basic-offset tab-width)
-            (setq indent-tabs-mode nil)))
+            (setq indent-tabs-mode nil)
+            (linum-mode)))
 
 
 ;; crate include guards

@@ -1,5 +1,8 @@
-;;COMMON CONFIGURATIONS
+;;; jtp-init --- COMMON CONFIGURATIONS
+;;; Commentary:
+;; my Emacs setup
 ;(setq debug-on-error t)
+;;; Code:
 (show-paren-mode t)			;; show matching parenthesis
 (column-number-mode t)			;; show current column
 (menu-bar-mode -1)			;; don't show menu-bar
@@ -30,7 +33,7 @@
 
 ;;a clock
 (setq display-time-day-and-date t)
-(setq display-time-24hr-format t)
+(defvar display-time-24hr-format t)
 (display-time)
 
 (add-to-list 'load-path "~/.emacs.d/lisp")
@@ -59,12 +62,13 @@
     )
 
 (defun show-elapsed-time (msg start end)
+  "Show a MSG with time bewteen START and END."
   (let ((elapsed (float-time (time-subtract end start))))
     (message "%s %.3fs" msg elapsed)))
 
 ;; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
 ;; week.
-(setq backup-dir "~/.emacs.d/backups")
+(defvar backup-dir "~/.emacs.d/backups")
 (unless (file-exists-p backup-dir)
   (make-directory backup-dir))
 
@@ -82,9 +86,9 @@
 (setq auto-save-file-name-transforms `((".*" ,backup-dir t)))
 
 (defun dont-kill-emacs(bool)
-  "Disable C-x C-c binding execute kill-emacs."
+  "Disable C-x C-c binding execute 'kill-emacs'."
   (interactive
-   (list (y-or-n-p "Do you want to kill emacs? ")))
+   (list (y-or-n-p "Do you want to kill Emacs? ")))
   (if bool
       (save-buffers-kill-terminal)
     (message "phew")))
@@ -100,7 +104,7 @@
 (defun kill-all-buffers ()
   "Kill all buffers."
   (interactive)
-  (mapcar 'kill-buffer (buffer-list))
+  (mapc 'kill-buffer (buffer-list))
   (delete-other-windows))
 
 ;; Make font bigger/smaller.
@@ -110,7 +114,7 @@
 
 
 (defun sudo-find-file (file)
-  "Find file with sudo/tramp."
+  "Find FILE with sudo/tramp."
   (interactive
    (list
     (read-file-name "Sudo find file: ")))
@@ -121,7 +125,7 @@
   (interactive)
   (sudo-find-file (buffer-file-name)))
 
-;(setq tramp-default-method "ssh")
+                                        ;(setq tramp-default-method "ssh")
 
 (global-set-key (kbd "C-x w") 'sudo-find-current)
 
@@ -152,7 +156,7 @@
 
 
 
-(setq global-fill-column 100)
+(defvar global-fill-column 100)
 (setq-default fill-column global-fill-column)
 (dolist (hook '(auto-fill-mode-hook
                 prog-mode-hook))
@@ -165,7 +169,7 @@
 
 
 ;; Auto-revert buffers when files change on disk.
-(setq auto-revert-verbose t)            ; announce when buffer is reverted.
+(defvar auto-revert-verbose t)            ; announce when buffer is reverted.
 (global-auto-revert-mode t)
 
 ;;;;;;;;; MAC OS X SPECIFIC
@@ -181,10 +185,10 @@
       ;; (setq mac-command-modifier 'meta)
       ;; (setq mac-option-modifier nil)
       (x-focus-frame nil)
-      (setq ns-use-native-fullscreen nil)
+      (defvar ns-use-native-fullscreen nil)
       ))
 (defun toggle-fullscreen ()
-  "Toggle full screen"
+  "Toggle full screen."
   (interactive)
   (set-frame-parameter
    nil 'fullscreen
@@ -233,6 +237,7 @@
 (setq compilation-window-height 30)
 
 (defun next-error-skip-warnings ()
+  "Jumps to next error skipping warnings."
   (interactive)
   (let (threshold compilation-skip-threshold)
     (setq compilation-skip-threshold 2)
@@ -261,7 +266,7 @@
             (setq process-adaptive-read-buffering t)))
 
 ;; Compilation output
-(setq compilation-scroll-output t)
+(defvar compilation-scroll-output t)
 
 ;; windows endlines
 (defun remove-dos-eol ()
@@ -315,15 +320,15 @@
 ;;;;;;;;; IDO
 
 (ido-mode t)
-(setq ido-enable-flex-matching t)
+(defvar ido-enable-flex-matching t)
 
 ;;;;;;;;; SPELLING
 
 ;; Set aspell as spell program
-(setq ispell-program-name "aspell")
+(defvar ispell-program-name "aspell")
 
 ;; Speed up aspell: ultra | fast | normal
-(setq ispell-extra-args '("--sug-mode=normal"))
+(defvar ispell-extra-args '("--sug-mode=normal"))
 
 ;; Flyspell activation for text mode
 (add-hook 'text-mode-hook
@@ -331,20 +336,15 @@
 
 ;; Change to danish dict
 (defun da-spell ()
-  "Set ispell to use Danish dictionary"
+  "Set Ippell to use Danish dictionary."
   (interactive)
   (ispell-change-dictionary "dansk"))
 
 ;; Change to english dict
 (defun en-spell ()
-  "Set ispell to use English dictionary"
+  "Set Ispell to use English dictionary."
   (interactive)
   (ispell-change-dictionary "english"))
-
-;; indent on CR
-(defun my-make-CR-do-indent ()
-  (define-key c-mode-base-map "\C-m" 'c-context-line-break))
-(add-hook 'c-initialization-hook 'my-make-CR-do-indent)
 
 ;; Open .h/.cc files in c++ mode.
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
@@ -371,13 +371,13 @@
 
 (package-initialize)
 (require 'package)
-;packages
+                                        ;packages
 (setq package-archives
       '(("gnu" . "http://elpa.gnu.org/packages/")
-       ("melpa-stable" . "http://stable.melpa.org/packages/")))
+        ("melpa-stable" . "http://stable.melpa.org/packages/")))
 
 (defun require-package (package)
-  "refresh package archives, check package presence and install if it's not installed"
+  "Refresh package archives, check PACKAGE presence and install if it's not installed."
   (if (null (require package nil t))
       (progn (let* ((ARCHIVES (if (null package-archive-contents)
                                   (progn (package-refresh-contents)
@@ -391,12 +391,12 @@
 (require-package 'use-package)
 (require 'use-package)
 
-;Closes *compilation* buffer after successful compilation, and otherwise when the failure was fixed
-;to compile, it restores the original window configuration.
-(use-package bury-successful-compilation
-  :ensure t
-  :config
-  (add-hook 'prog-mode-hook 'bury-successful-compilation))
+;;Closes *compilation* buffer after successful compilation, and otherwise when the failure was fixed
+;; to compile, it restores the original window configuration.
+;; (use-package bury-successful-compilation
+;;   :ensure t
+;;   :config
+;;   (add-hook 'prog-mode-hook 'bury-successful-compilation))
 
 ;; magic return to where you left from
 (use-package saveplace
@@ -423,8 +423,7 @@
   (add-to-list 'auto-mode-alist '("\\.py" . python-mode)))
 
 ;;;;;;;;; JavaScript
-(add-hook 'js-mode-hook (lambda () (setq js-indent-level 2)))
-
+(add-hook 'js-mode-hook (lambda () (defvar js-indent-level 2)))
 
 ;;;;;;;;; C & C++
 
@@ -439,40 +438,23 @@
 
 ;; crate include guards
 (defun my-c-header-ifdef ()
+  "Create a header guard with random suffix on the define name."
   (interactive)
   (save-excursion
-    (let* ((file (replace-regexp-in-string "[^0-9a-zA-z]" "_" 
+    (let* ((file (replace-regexp-in-string "[^0-9a-zA-z]" "_"
                                            (buffer-name)))
            (file (replace-regexp-in-string ".h" "" file))
            (file (concat file "_" (shell-command-to-string "openssl rand -hex 8"))))
-      (beginning-of-buffer)
-      (insert (concat "#if !defined " file)) 
+      (goto-char (point-min))
+      (insert (concat "#if !defined " file))
       (insert (concat "#define " file))
       (newline 2)
-      (end-of-buffer)
+      (goto-char (point-max))
       (newline)
       (insert (concat "#endif // " file ))
       (newline))))
 
 ;; cppcheck --template='{file}:{line}:{severity}:{message}' --quiet <filename>
-
-
-;; replace the `completion-at-point' and `complete-symbol' bindings in
-;; irony-mode's buffers by irony-mode's function
-(defun my-irony-mode-hook ()
-  (define-key irony-mode-map [remap completion-at-point]
-    'irony-completion-at-point-async)
-  (define-key irony-mode-map [remap complete-symbol]
-    'irony-completion-at-point-async)
-  ;; Only run auto-setup first time to be faster. However, it's not perfect because if opening a
-  ;; file in a different project root it will not auto-setup for the new CDB. But then use
-  ;; `irony-cdb-json-select'.
-  (when (not my-irony-cdb-loaded-time)
-    (setq my-irony-cdb-loaded-time (current-time))
-    (message "Irony CDB auto-setup...")
-    (irony-cdb-autosetup-compile-options)
-    (show-elapsed-time "Irony CDB auto-setup done in" my-irony-cdb-loaded-time (current-time))))
-
 
 
 ;; Elisp
@@ -492,11 +474,11 @@
   (setq org-directory "~/orgs")
   (setq org-log-done t)
   ;; Yes it's long... but more is better ;)
-  (setq org-clock-history-length 35)
+  (defvar org-clock-history-length 35)
   ;; Resume clocking task on clock-in if the clock is open
-  (setq org-clock-in-resume t)
+  (defvar org-clock-in-resume t)
   ;;Change task state to STARTED when clocking in
-  (setq org-clock-in-switch-to-state "STARTED")
+  (defvar org-clock-in-switch-to-state "STARTED")
   ;; Doing
   (setq org-todo-keywords
         '((sequence "TODO(t)" "STARTED(s)" "|" "ABORTED(a)" "DONE(d)")))
@@ -504,14 +486,14 @@
   (add-hook 'org-mode-hook 'auto-fill-mode t)
   (add-hook 'org-mode-hook 'flyspell-mode t)
   ;; Capture notes
-  (setq jtp-inbox (concat org-directory "/inbox.org"))
-  (setq org-default-notes-file jtp-inbox)
+  (defvar jtp-inbox (concat org-directory "/inbox.org"))
+  (defvar org-default-notes-file jtp-inbox)
   ;; Templates
-  (setq org-capture-templates
-        '(("t" "Todo" entry (file+headline jtp-inbox "Tasks")
-           "* TODO %?\n  %i\n  %a")
-          ("m" "Meeting" entry (file+headline jtp-inbox "Meetings")
-           "* TODO %?\n  SCHDULED: %^T")))
+  (defvar org-capture-templates
+    '(("t" "Todo" entry (file+headline jtp-inbox "Tasks")
+       "* TODO %?\n  %i\n  %a")
+      ("m" "Meeting" entry (file+headline jtp-inbox "Meetings")
+       "* TODO %?\n  SCHDULED: %^T")))
   ;; Export to confluence
   (require 'ox-confluence)
   :bind
@@ -563,8 +545,8 @@
 (use-package helm
   :ensure t
   :config
-  (setq helm-recentf-fuzzy-match t)
-  (setq helm-ff-file-name-history-use-recentf t)
+  (defvar helm-recentf-fuzzy-match t)
+  (defvar helm-ff-file-name-history-use-recentf t)
   :bind (
          ("M-x"   . helm-M-x)
          ("M-y"   . helm-show-kill-ring)
@@ -626,21 +608,7 @@
   :ensure t
   :config
   (add-hook 'after-init-hook #'global-flycheck-mode)
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11"))))
-
-;; (require 'devdocs-lookup)
-;; (devdocs-setup)
-;; (global-set-key "\C-cd" 'devdocs-lookup)
-
-;; (add-hook 'c-mode-common-hook
-;;           (lambda ()
-;;             ;; (flyspell-prog-mode)
-;;             (local-set-key "\C-cd" #'devdocs-lookup-cpp)))
-
-;; (add-hook 'python-mode-common-hook
-;;           (lambda ()
-;;             ;; (flyspell-prog-mode)
-;;             (local-set-key "\C-cd" #'devdocs-lookup-python)))
+  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "gnu++14"))))
 
 
 ;;;;; COMPILATION
@@ -670,8 +638,8 @@
 
 ;; Visualize certain like space at end of line and trailing characters after
 ;; fill column.
-(setq whitespace-style '(face empty tabs lines-tail trailing tab-mark))
-(setq whitespace-line-column global-fill-column)
+(defvar whitespace-style '(face empty tabs lines-tail trailing tab-mark))
+(defvar whitespace-line-column global-fill-column)
 
 (add-hook 'prog-mode-hook 'whitespace-mode)
 

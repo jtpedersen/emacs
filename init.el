@@ -18,7 +18,7 @@
 (size-indication-mode t)             ;; Show current buffer size
 
 
-(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-12"))
+(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-10"))
 ;; set a default font
 (when (member "DejaVu Sans Mono" (font-family-list))
   (set-face-attribute 'default nil :font "DejaVu Sans Mono"))
@@ -139,7 +139,7 @@
  '(magit-branch-arguments nil)
  '(magit-log-arguments (quote ("--graph" "--color" "--decorate" "-n256")))
  '(magit-push-arguments (quote ("--set-upstream")))
- '(org-agenda-files (quote ("d:/BGProjects/orgs/PN.org")))
+ '(org-agenda-files (quote ("~/orgs/todo.org" "~/orgs/inbox.org")))
  '(package-selected-packages
    (quote
     (plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projectile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
@@ -489,23 +489,34 @@
 (use-package org
   :ensure t
   :config
+  (setq org-directory "~/orgs")
   (setq org-log-done t)
-  ;;
   ;; Yes it's long... but more is better ;)
-;  (setq org-clock-history-length 35)
+  (setq org-clock-history-length 35)
   ;; Resume clocking task on clock-in if the clock is open
   (setq org-clock-in-resume t)
   ;;Change task state to STARTED when clocking in
-  ;(setq org-clock-in-switch-to-state "STARTED")
+  (setq org-clock-in-switch-to-state "STARTED")
+  ;; Doing
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "STARTED(s)" "|" "ABORTED(a)" "DONE(d)")))
   ;; writing hooks
   (add-hook 'org-mode-hook 'auto-fill-mode t)
   (add-hook 'org-mode-hook 'flyspell-mode t)
-  (setq org-todo-keywords
-        '((sequence "TODO(t)" "STARTED(s)" "|" "ABORTED(a)" "DONE(d)")))
+  ;; Capture notes
+  (setq jtp-inbox (concat org-directory "/inbox.org"))
+  (setq org-default-notes-file jtp-inbox)
+  ;; Templates
+  (setq org-capture-templates
+        '(("t" "Todo" entry (file+headline jtp-inbox "Tasks")
+           "* TODO %?\n  %i\n  %a")
+          ("m" "Meeting" entry (file+headline jtp-inbox "Meetings")
+           "* TODO %?\n  SCHDULED: %^T")))
+  ;; Export to confluence
   (require 'ox-confluence)
   :bind
-  ( ("\C-ca" . org-agenda) )
-  )
+  (("\C-ca" . org-agenda)
+   ("\C-cc" . org-capture)))
 
 ;;magit
 (use-package magit
@@ -750,4 +761,3 @@
   (add-to-list 'auto-mode-alist '("\\.uml\\'" . plantuml-mode))
   ;(add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
   )
-

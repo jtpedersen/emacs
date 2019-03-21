@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: dox
+# key: dox
+# --
+
+/**
+ * \Brief $1
+ * $2
+ */
+ $0

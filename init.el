@@ -146,7 +146,7 @@
  '(org-agenda-files (quote ("~/orgs/todo.org" "~/orgs/inbox.org")))
  '(package-selected-packages
    (quote
-    (plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projectile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projectile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -231,7 +231,8 @@
 
 ;; Do not jump to headers
 (global-set-key (kbd "C-c o")
-                '(lambda () (interactive) (ff-find-other-file nil t)))
+                '(lambda () (interactive) (ff-find-other-file nil)))
+(setq cc-search-directories '("." "../Source/" "../../Source" "../Include" "../../Include"))
 
 
 (setq compilation-window-height 30)
@@ -436,14 +437,14 @@
             (linum-mode)))
 
 
-;; crate include guards
+;; Create include guards
 (defun my-c-header-ifdef ()
   "Create a header guard with random suffix on the define name."
   (interactive)
   (save-excursion
-    (let* ((file (replace-regexp-in-string "[^0-9a-zA-z]" "_"
+    (let* ((file (replace-regexp-in-string "[^0-9a-zA-Z]" "_"
                                            (buffer-name)))
-           (file (replace-regexp-in-string ".h" "" file))
+           (file (replace-regexp-in-string "\.h" "" file))
            (file (concat file "_" (shell-command-to-string "openssl rand -hex 8"))))
       (goto-char (point-min))
       (insert (concat "#if !defined " file))
@@ -486,14 +487,16 @@
   (add-hook 'org-mode-hook 'auto-fill-mode t)
   (add-hook 'org-mode-hook 'flyspell-mode t)
   ;; Capture notes
-  (defvar jtp-inbox (concat org-directory "/inbox.org"))
+  (defvar jtp-inbox (concat org-directory "/todo.org"))
   (defvar org-default-notes-file jtp-inbox)
   ;; Templates
   (defvar org-capture-templates
     '(("t" "Todo" entry (file+headline jtp-inbox "Tasks")
        "* TODO %?\n  %i\n  %a")
+      ("f" "Follow up" entry (file+headline jtp-inbox "Tasks")
+           "* TODO Follow up on: %?\n  DEADLINE: %^t")
       ("m" "Meeting" entry (file+headline jtp-inbox "Meetings")
-       "* TODO %?\n  SCHDULED: %^T")))
+       "* TODO %?\n  SCHEDULED: %^T")))
   ;; Export to confluence
   (require 'ox-confluence)
   :bind
@@ -692,14 +695,17 @@
 
 
 
-(defconst yas-dir (concat user-emacs-directory "snippets"))
 (use-package yasnippet
   :ensure t
   :config
+  (defconst yas-dir (concat user-emacs-directory "snippets"))
   ;; Add local snippets to override some of the defaults in elpa folder.
   (add-to-list 'yas-snippet-dirs yas-dir)
   (yas-global-mode 1))
 
+
+(use-package yasnippet-classic-snippets
+  :ensure t)
 
 ;; Turn on smerge-mode when opening a file with the markers in them.
 (defun sm-try-smerge ()
@@ -729,3 +735,28 @@
   (add-to-list 'auto-mode-alist '("\\.uml\\'" . plantuml-mode))
   ;(add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
   )
+
+(use-package langtool
+  :ensure t
+  :config
+  (add-hook 'org-mode-hook(lambda ()
+                            (progn
+                              (setq langtool-language-tool-jar "/home/jacob/3pp/LanguageTool-4.4/languagetool-commandline.jar")
+                              (setq langtool-default-language "en-US")
+                              (setq langtool-user-arguments '("--languagemodel" "/home/jacob/3pp/LanguageTool-4.4"))
+                              (require 'langtool)))))
+
+(use-package all-the-icons
+  :ensure t)
+
+(use-package highlight-symbol
+  :ensure t
+  :init
+  (add-hook 'prog-mode 'highlight-symbol-mode)
+  :bind
+  (( "C-<f3>" . highlight-symbol)
+   ( "<f3>"   . highlight-symbol-next)
+   ( "S-<f3>" . highlight-symbol-prev)
+   ( "M-<f3>" . highlight-symbol-query-replace)))
+
+;;; init.el ends here

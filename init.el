@@ -146,12 +146,17 @@
  '(org-agenda-files (quote ("~/orgs/todo.org" "~/orgs/inbox.org")))
  '(package-selected-packages
    (quote
-    (highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projectile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projectile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(company-scrollbar-bg ((t (:background "#4ccc4ccc4ccc"))))
+ '(company-scrollbar-fg ((t (:background "#3fff3fff3fff"))))
+ '(company-tooltip ((t (:inherit default :background "#385138513851"))))
+ '(company-tooltip-common ((t (:inherit font-lock-constant-face))))
+ '(company-tooltip-selection ((t (:inherit font-lock-function-name-face))))
  '(highlight-current-line-face ((t (:background "gray22")))))
 
 
@@ -205,26 +210,9 @@
 
 ;;;;;;;;; CUSTOM COLORS & FONTS
 
-(load-theme 'tsdh-dark)
 
 (setq frame-title-format (list (format "%%S %%j ")
                                '(buffer-file-name "%f" (dired-directory dired-directory "%b"))))
-
-(defface hi-yellow
-  '((((min-colors 88) (background dark))
-     (:background "DarkGoldenrod3" :foreground "black"))
-    (((background dark)) (:background "DarkGoldenrod3" :foreground "black"))
-    (((min-colors 88)) (:background "DarkGoldenrod3"))
-    (t (:background "DarkGoldenrod3")))
-  "Default face for hi-lock mode."
-  :group 'hi-lock-faces)
-
-(defface hi-pink
-  '((((background dark)) (:background "pink" :foreground "black"))
-    (t (:background "pink")))
-  "Face for hi-lock mode."
-  :group 'hi-lock-faces)
-
 
 
 ;;;;;;;;; CUSTOM KEYBINDINGS
@@ -232,7 +220,9 @@
 ;; Do not jump to headers
 (global-set-key (kbd "C-c o")
                 '(lambda () (interactive) (ff-find-other-file nil)))
-(setq cc-search-directories '("." "../Source/" "../../Source" "../Include" "../../Include"))
+(defvar cc-search-directories '("." "../Source/" "../../Source" "../Include" "../../Include"
+                              "../../src/*" "../../../src/&" "../include/" "../../include/*"
+                              "/usr/include/c++/*"))
 
 
 (setq compilation-window-height 30)
@@ -431,7 +421,7 @@
 (add-hook 'c-mode-common-hook
           (lambda ()
             ;; (flyspell-prog-mode)
-            (setq tab-width 2)
+            (setq tab-width 4)
             (setq c-basic-offset tab-width)
             (setq indent-tabs-mode nil)
             (linum-mode)))
@@ -442,17 +432,17 @@
   "Create a header guard with random suffix on the define name."
   (interactive)
   (save-excursion
-    (let* ((file (replace-regexp-in-string "[^0-9a-zA-Z]" "_"
+    (let* ((guard (replace-regexp-in-string "[^0-9a-zA-Z]" "_"
                                            (buffer-name)))
-           (file (replace-regexp-in-string "\.h" "" file))
-           (file (concat file "_" (shell-command-to-string "openssl rand -hex 8"))))
+           (guard (replace-regexp-in-string "\.h" "" guard))
+           (guard (concat guard "_" (shell-command-to-string "openssl rand -hex 8"))))
       (goto-char (point-min))
-      (insert (concat "#if !defined " file))
-      (insert (concat "#define " file))
+      (insert (concat "#if !defined " guard))
+      (insert (concat "#define " guard))
       (newline 2)
       (goto-char (point-max))
       (newline)
-      (insert (concat "#endif // " file ))
+      (insert (concat "#endif // " guard ))
       (newline))))
 
 ;; cppcheck --template='{file}:{line}:{severity}:{message}' --quiet <filename>
@@ -494,14 +484,26 @@
     '(("t" "Todo" entry (file+headline jtp-inbox "Tasks")
        "* TODO %?\n  %i\n  %a")
       ("f" "Follow up" entry (file+headline jtp-inbox "Tasks")
-           "* TODO Follow up on: %?\n  DEADLINE: %^t")
+       "* TODO Follow up on: %?\n  DEADLINE: %^t")
       ("m" "Meeting" entry (file+headline jtp-inbox "Meetings")
        "* TODO %?\n  SCHEDULED: %^T")))
   ;; Export to confluence
   (require 'ox-confluence)
+  ;; load plantuml
+  (with-eval-after-load 'org
+    (org-babel-do-load-languages
+     'org-babel-load-languages '((plantuml . t)))
+    )
+  (defvar org-plantuml-jar-path "~/plantuml.jar")
+
   :bind
   (("\C-ca" . org-agenda)
    ("\C-cc" . org-capture)))
+
+(use-package htmlize
+  :ensure t
+  )
+
 
 ;;magit
 (use-package magit
@@ -564,7 +566,7 @@
   (add-hook 'c-mode-hook 'helm-gtags-mode)
   (add-hook 'c++-mode-hook 'helm-gtags-mode)
   (add-hook 'asm-mode-hook 'helm-gtags-mode)
-
+  (setenv "GTAGSFORCECPP" "1")
   ;; Set key bindings
   (eval-after-load "helm-gtags"
     '(progn
@@ -746,17 +748,42 @@
                               (setq langtool-user-arguments '("--languagemodel" "/home/jacob/3pp/LanguageTool-4.4"))
                               (require 'langtool)))))
 
-(use-package all-the-icons
-  :ensure t)
-
 (use-package highlight-symbol
   :ensure t
-  :init
+  :config
   (add-hook 'prog-mode 'highlight-symbol-mode)
   :bind
   (( "C-<f3>" . highlight-symbol)
    ( "<f3>"   . highlight-symbol-next)
    ( "S-<f3>" . highlight-symbol-prev)
    ( "M-<f3>" . highlight-symbol-query-replace)))
+
+(use-package lsp-mode
+  :ensure t
+  :config
+  (add-hook 'c++-mode-hook #'lsp)
+  )
+
+(use-package company
+  :ensure t
+  :config
+  (setq company-idle-delay 0.3)
+  (global-company-mode 1)
+  (global-set-key (kbd "C-<tab>") 'company-complete))
+
+(use-package company-lsp
+  :ensure t
+  :config
+  (push 'company-lsp company-backends)
+
+   ;; Disable client-side cache because the LSP server does a better job.
+  (setq company-transformers nil
+        company-lsp-async t
+        company-lsp-cache-candidates nil))
+
+(use-package zenburn-theme
+  :ensure t
+  :config
+  (load-theme 'zenburn t))
 
 ;;; init.el ends here

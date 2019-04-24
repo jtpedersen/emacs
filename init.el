@@ -469,7 +469,7 @@
   (defvar org-clock-in-switch-to-state "STARTED")
   ;; Doing
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "STARTED(s)" "|" "ABORTED(a)" "DONE(d)")))
+        '((sequence "TODO(t)" "STARTED(s!)" "|" "ABORTED(a@)" "DONE(d@/!)")))
   ;; writing hooks
   (add-hook 'org-mode-hook 'auto-fill-mode t)
   (add-hook 'org-mode-hook 'flyspell-mode t)
@@ -489,9 +489,12 @@
   ;; load plantuml
   (with-eval-after-load 'org
     (org-babel-do-load-languages
-     'org-babel-load-languages '((plantuml . t)))
+     'org-babel-load-languages '(
+                                 (plantuml . t)
+                                 (shell . t)
+                                 ))
     )
-  (defvar org-plantuml-jar-path "~/plantuml.jar")
+  (setq org-plantuml-jar-path "~/plantuml.jar")
 
   :bind
   (("\C-ca" . org-agenda)

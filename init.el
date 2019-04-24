@@ -14,17 +14,16 @@
 (mouse-avoidance-mode 'jump)            ;; jump mouse away when typing
 (setq visible-bell 1)                   ;; turn off bip warnings
 (auto-compression-mode t)               ;; browse tar archives
-(put 'upcase-region 'disabled nil)      ;; enable ``upcase-region''
 (global-font-lock-mode t)               ;; syntax highlight
 (setq-default indent-tabs-mode nil)     ;; use spaces instead of tabs
 (fset 'yes-or-no-p 'y-or-n-p)           ;; use 'y' instead of 'yes' etc.
 (size-indication-mode t)             ;; Show current buffer size
 
 
-(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-10"))
 ;; set a default font
-(when (member "DejaVu Sans Mono" (font-family-list))
-  (set-face-attribute 'default nil :font "DejaVu Sans Mono"))
+(set-face-attribute 'default nil :font "DejaVu Sans Mono" :height (pcase system-type
+                                                                        ('gnu/linux 130)
+                                                                        ('darwin 130)) :weight 'normal)
 
 ;; Garbage collect at every 20 MB allocated instead of the default 8 MB. This
 ;; speeds up various things.
@@ -124,8 +123,6 @@
   "Find current buffer file with sudo/tramp."
   (interactive)
   (sudo-find-file (buffer-file-name)))
-
-                                        ;(setq tramp-default-method "ssh")
 
 (global-set-key (kbd "C-x w") 'sudo-find-current)
 

@@ -22,7 +22,7 @@
 
 ;; set a default font
 (set-face-attribute 'default nil :font "DejaVu Sans Mono" :height (pcase system-type
-                                                                        ('gnu/linux 130)
+                                                                        ('gnu/linux 105)
                                                                         ('darwin 130)) :weight 'normal)
 
 ;; Garbage collect at every 20 MB allocated instead of the default 8 MB. This
@@ -65,6 +65,7 @@
   (let ((elapsed (float-time (time-subtract end start))))
     (message "%s %.3fs" msg elapsed)))
 
+(setq temporary-file-directory "~/.emacs.d/tmp/")
 ;; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
 ;; week.
 (defvar backup-dir "~/.emacs.d/backups")
@@ -143,7 +144,7 @@
  '(org-agenda-files (quote ("~/orgs/todo.org" "~/orgs/inbox.org")))
  '(package-selected-packages
    (quote
-    (zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projectile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -434,7 +435,7 @@
            (guard (replace-regexp-in-string "\.h" "" guard))
            (guard (concat guard "_" (shell-command-to-string "openssl rand -hex 8"))))
       (goto-char (point-min))
-      (insert (concat "#if !defined " guard))
+      (insert (concat "#ifndef " guard))
       (insert (concat "#define " guard))
       (newline 2)
       (goto-char (point-max))
@@ -689,10 +690,15 @@
   :init
   (setq projectile-keymap-prefix (kbd "C-x p"))
   (setq projectile-mode-line "ρ")
-  (setq projectile-enable-caching t)
+  (setq projectile-enable-caching nil)
   (setq projectile-file-exists-remote-cache-expire (* 10 60))
-  (setq projectile-indexing-method 'alien)
   :config
+  ;; Want projects defined by a few markers and we always want to take the top-most marker.
+  ;; Reorder so other cases are secondary
+  ;; (setq projectile-project-root-files-functions #'(projectile-root-top-down
+  ;;                                                     projectile-root-top-down-recurring
+  ;;                                                     projectile-root-bottom-up
+  ;;                                                     projectile-root-local))
   (projectile-global-mode))
 
 
@@ -716,7 +722,7 @@
     (when (re-search-forward "^<<<<<<< " nil t)
       (smerge-mode 1))))
 
-(add-hook 'find-file-hook 'sm-try-smerge)
+;(add-hook 'find-file-hook 'sm-try-smerge)
 
 (use-package helm-ag
   :ensure t
@@ -758,11 +764,6 @@
    ( "S-<f3>" . highlight-symbol-prev)
    ( "M-<f3>" . highlight-symbol-query-replace)))
 
-(use-package lsp-mode
-  :ensure t
-  :config
-  (add-hook 'c++-mode-hook #'lsp)
-  )
 
 (use-package company
   :ensure t
@@ -771,19 +772,31 @@
   (global-company-mode 1)
   (global-set-key (kbd "C-<tab>") 'company-complete))
 
-(use-package company-lsp
-  :ensure t
-  :config
-  (push 'company-lsp company-backends)
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :config
+;;   (add-hook 'c++-mode-hook #'lsp)
+;;   )
 
-   ;; Disable client-side cache because the LSP server does a better job.
-  (setq company-transformers nil
-        company-lsp-async t
-        company-lsp-cache-candidates nil))
+;; (use-package company-lsp
+;;   :ensure t
+;;   :config
+;;   (push 'company-lsp company-backends)
+
+;;    ;; Disable client-side cache because the LSP server does a better job.
+;;   (setq company-transformers nil
+;;         company-lsp-async t
+;;         company-lsp-cache-candidates nil))
 
 (use-package zenburn-theme
   :ensure t
   :config
   (load-theme 'zenburn t))
+
+;; Should help speed loading of files
+(remove-hook 'find-file-hooks 'vc-find-file-hook)
+
+;; Speed up loading of recent-f list
+(setq recentf-keep '(file-remote-p file-readable-p))
 
 ;;; init.el ends here

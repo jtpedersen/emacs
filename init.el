@@ -60,11 +60,6 @@
   (set-exec-path-from-shell-path)
     )
 
-(defun show-elapsed-time (msg start end)
-  "Show a MSG with time bewteen START and END."
-  (let ((elapsed (float-time (time-subtract end start))))
-    (message "%s %.3fs" msg elapsed)))
-
 (setq temporary-file-directory "~/.emacs.d/tmp/")
 ;; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
 ;; week.
@@ -144,7 +139,7 @@
  '(org-agenda-files (quote ("~/orgs/todo.org" "~/orgs/inbox.org")))
  '(package-selected-packages
    (quote
-    (zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -699,7 +694,8 @@
   ;;                                                     projectile-root-top-down-recurring
   ;;                                                     projectile-root-bottom-up
   ;;                                                     projectile-root-local))
-  (projectile-global-mode))
+  ;(projectile-global-mode)
+  )
 
 
 
@@ -793,10 +789,38 @@
   :config
   (load-theme 'zenburn t))
 
+
 ;; Should help speed loading of files
 (remove-hook 'find-file-hooks 'vc-find-file-hook)
 
 ;; Speed up loading of recent-f list
 (setq recentf-keep '(file-remote-p file-readable-p))
+
+(use-package helm-swoop
+  :ensure t
+  :config (global-set-key (kbd "M-i") 'helm-swoop)
+  (global-set-key (kbd "M-I") 'helm-swoop-back-to-last-point)
+  (global-set-key (kbd "C-c M-i") 'helm-multi-swoop)
+  (global-set-key (kbd "C-x M-i") 'helm-multi-swoop-all)
+  (define-key isearch-mode-map (kbd "M-i") 'helm-swoop-from-isearch)
+  (define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop)
+  (setq helm-multi-swoop-edit-save t)
+  ;;If this value is t, split window inside the current window
+  (setq helm-swoop-split-with-multiple-windows nil)
+
+  ;; Split direction. 'split-window-vertically or 'split-window-horizontally
+  (setq helm-swoop-split-direction 'split-window-vertically)
+
+  ;; If nil, you can slightly boost invoke speed in exchange for text color
+  (setq helm-swoop-speed-or-color nil)
+
+  ;; Go to the opposite side of line from the end or beginning of line
+  (setq helm-swoop-move-to-line-cycle t)
+
+  ;; Optional face for line numbers
+  ;; Face name is `helm-swoop-line-number-face`
+  (setq helm-swoop-use-line-number-face t))
+
+
 
 ;;; init.el ends here

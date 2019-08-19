@@ -427,8 +427,8 @@
   (save-excursion
     (let* ((guard (replace-regexp-in-string "[^0-9a-zA-Z]" "_"
                                            (buffer-name)))
-           (guard (replace-regexp-in-string "\.h" "" guard))
-           (guard (concat guard "_" (shell-command-to-string "openssl rand -hex 8"))))
+           (guard (replace-regexp-in-string "h\\'" "" guard))
+           (guard (concat guard  (shell-command-to-string "openssl rand -hex 8"))))
       (goto-char (point-min))
       (insert (concat "#ifndef " guard))
       (insert (concat "#define " guard))

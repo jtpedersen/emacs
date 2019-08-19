@@ -724,7 +724,9 @@
   :ensure t
   :requires helm
   :config
-  (setq helm-ag-base-command "ag --nocolor --nogroup --smart-case --stats"))
+  (setq helm-ag-base-command "ag --nocolor --nogroup --smart-case --stats")
+  (setq helm-ag-insert-at-point 'symbol))
+
 
 (use-package lua-mode
   :ensure t

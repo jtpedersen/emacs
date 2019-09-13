@@ -139,7 +139,8 @@
  '(org-agenda-files (quote ("~/orgs/todo.org" "~/orgs/inbox.org")))
  '(package-selected-packages
    (quote
-    (esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package))))
+    (git-timemachine smart-mode-line-powerline-theme esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package)))
+ '(safe-local-variable-values (quote ((org-confirm-babel-evaluate)))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -763,12 +764,12 @@
    ( "M-<f3>" . highlight-symbol-query-replace)))
 
 
-(use-package company
-  :ensure t
-  :config
-  (setq company-idle-delay 0.3)
-  (global-company-mode 1)
-  (global-set-key (kbd "C-<tab>") 'company-complete))
+;; (use-package company
+;;   :ensure t
+;;   :config
+;;   (setq company-idle-delay 0.3)
+;;   (global-company-mode 1)
+;;   (global-set-key (kbd "C-<tab>") 'company-complete))
 
 ;; (use-package lsp-mode
 ;;   :ensure t
@@ -824,5 +825,11 @@
   (setq helm-swoop-use-line-number-face t))
 
 
+(use-package smart-mode-line-powerline-theme
+  :ensure t
+  :config
+  (setq sml/theme 'respectful))
 
+(use-package git-timemachine
+  :ensure t)
 ;;; init.el ends here

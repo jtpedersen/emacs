@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: REQUIRE
+# key: R
+# --
+REQUIRE(${1:actual} == ${2:expected});
+$0

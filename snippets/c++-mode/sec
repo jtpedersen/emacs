@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: SECTION
+# key: sec
+# --
+SECTION("${1:name_or_description}") {
+    $0REQUIRE("fail" == "first");
+}

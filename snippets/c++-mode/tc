@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: TEST_CASE
+# key: tc
+# --
+TEST_CASE("${1:case_name}", "[${2:label}]") {
+    $0REQUIRE("fail" == "first");
+}

@@ -323,24 +323,6 @@
   (savehist-mode t))
 
 
-;;;;;;;;; Python-mode
-(use-package python-mode
-  :ensure t
-  :config
-  (autoload 'python-mode "python-mode" "Mode for editing Python source files")
-  (add-to-list 'auto-mode-alist '("\\.py" . python-mode)))
-
-;; (use-package elpy
-;;   :ensure t
-;;   :init
-;;   (elpy-enable)
-;;   :config
-;;   (setq elpy-rpc-virtualenv-path 'current)
-;;   )
-
-;;;;;;;;; JavaScript
-(add-hook 'js-mode-hook (lambda () (defvar js-indent-level 2)))
-
 ;;;;;;;;; C & C++
 
 (add-hook 'c-mode-common-hook

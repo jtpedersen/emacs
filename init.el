@@ -503,6 +503,7 @@
                                  (python . t)
                                  ))
     )
+  (setq org-confirm-babel-evaluate nil)
   (setq org-plantuml-jar-path "~/plantuml.jar")
 
   :bind

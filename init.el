@@ -293,10 +293,6 @@
         (clang-format-region (region-beginning) (region-end))
       (clang-format-buffer))))
 
-;; Bindings
-
-(add-to-list 'auto-mode-alist '(".qss" . javascript-mode))
-
 ;;;;;;;;; EMAIL
 (setq user-mail-address "jpedersen@roku.com")
 
@@ -425,7 +421,9 @@
             (setq tab-width 4)
             (setq c-basic-offset tab-width)
             (setq indent-tabs-mode nil)
-            (linum-mode)))
+            (linum-mode)
+            (add-hook (make-local-variable 'before-save-hook)
+                      'clang-format-buffer)))
 
 
 ;; Create include guards

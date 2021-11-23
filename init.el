@@ -22,7 +22,7 @@
 
 ;; set a default font
 (set-face-attribute 'default nil :font "DejaVu Sans Mono" :height (pcase system-type
-                                                                        ('gnu/linux 130)
+                                                                        ('gnu/linux 110)
                                                                         ('darwin 130)) :weight 'normal)
 
 ;; Garbage collect at every 20 MB allocated instead of the default 8 MB. This
@@ -131,19 +131,14 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   (quote
-    ("3693403316f0127326fa08067c2e3013eda29216829e1478e1656ea4fbbc6560" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "49ad7c8d458074db7392f8b8a49235496e9228eb2fa6d3ca3a7aa9d23454efc6" "6a9606327ecca6e772fba6ef46137d129e6d1888dcfc65d0b9b27a7a00a4af20" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "3a727bdc09a7a141e58925258b6e873c65ccf393b2240c51553098ca93957723" "6a37be365d1d95fad2f4d185e51928c789ef7a4ccf17e7ca13ad63a8bf5b922f" "756597b162f1be60a12dbd52bab71d40d6a2845a3e3c2584c6573ee9c332a66e" default)))
- '(eclim-eclipse-dirs (quote ("d:/Tools/eclipse-installation")))
- '(eclim-executable "d:/Tools/eclipse-installation/eclim.bat")
- '(lsp-prefer-flymake nil t)
- '(magit-branch-arguments nil)
- '(magit-log-arguments (quote ("--graph" "--color" "--decorate" "-n256")))
- '(magit-push-arguments (quote ("--set-upstream")))
- '(org-agenda-files (quote ("~/orgs/todo.org" "~/orgs/inbox.org")))
+   '("3693403316f0127326fa08067c2e3013eda29216829e1478e1656ea4fbbc6560" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "49ad7c8d458074db7392f8b8a49235496e9228eb2fa6d3ca3a7aa9d23454efc6" "6a9606327ecca6e772fba6ef46137d129e6d1888dcfc65d0b9b27a7a00a4af20" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "3a727bdc09a7a141e58925258b6e873c65ccf393b2240c51553098ca93957723" "6a37be365d1d95fad2f4d185e51928c789ef7a4ccf17e7ca13ad63a8bf5b922f" "756597b162f1be60a12dbd52bab71d40d6a2845a3e3c2584c6573ee9c332a66e" default))
+ '(magit-log-arguments '("--graph" "--color" "--decorate" "-n256"))
+ '(magit-push-arguments '("--set-upstream"))
+ '(org-agenda-files
+   '("~/orgs/RokuTvReady/Spring22.org" "~/orgs/todo.org" "~/orgs/inbox.org"))
  '(package-selected-packages
-   (quote
-    (helm-projectile dumb-jump ob-async git-timemachine smart-mode-line-powerline-theme esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx flycheck helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org flycheck-irony company-irony-c-headers company-irony python-mode req-package)))
- '(safe-local-variable-values (quote ((org-confirm-babel-evaluate)))))
+   '(ox-reveal ox-gfm helm-projectile dumb-jump ob-async git-timemachine smart-mode-line-powerline-theme esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org  company-irony-c-headers company-irony python-mode req-package))
+ '(safe-local-variable-values '((org-confirm-babel-evaluate))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -357,12 +352,13 @@
 (setq auto-mode-alist (append '(("\\.css$" . css-mode)) auto-mode-alist))
 
 
-(package-initialize)
 (require 'package)
                                         ;packages
 (setq package-archives
       '(("gnu" . "http://elpa.gnu.org/packages/")
-        ("melpa-stable" . "http://stable.melpa.org/packages/")))
+        ("melpa" . "http://melpa.org/packages/")))
+(package-initialize)
+
 
 (defun require-package (package)
   "Refresh package archives, check PACKAGE presence and install if it's not installed."
@@ -404,19 +400,19 @@
 
 
 ;;;;;;;;; Python-mode
-;; (use-package python-mode
-;;   :ensure t
-;;   :config
-;;   (autoload 'python-mode "python-mode" "Mode for editing Python source files")
-;;   (add-to-list 'auto-mode-alist '("\\.py" . python-mode)))
-
-(use-package elpy
+(use-package python-mode
   :ensure t
-  :init
-  (elpy-enable)
   :config
-  (setq elpy-rpc-virtualenv-path 'current)
-  )
+  (autoload 'python-mode "python-mode" "Mode for editing Python source files")
+  (add-to-list 'auto-mode-alist '("\\.py" . python-mode)))
+
+;; (use-package elpy
+;;   :ensure t
+;;   :init
+;;   (elpy-enable)
+;;   :config
+;;   (setq elpy-rpc-virtualenv-path 'current)
+;;   )
 
 ;;;;;;;;; JavaScript
 (add-hook 'js-mode-hook (lambda () (defvar js-indent-level 2)))
@@ -494,6 +490,9 @@
        "* TODO %?\n  SCHEDULED: %^T")))
   ;; Export to confluence
   (require 'ox-confluence)
+  (require 'ox-reveal)
+  ;; Export to jira
+   (load-file (concat user-emacs-directory "lisp/ox-jira.el"))
   ;; load plantuml
   (with-eval-after-load 'org
     (org-babel-do-load-languages
@@ -623,11 +622,11 @@
   (global-set-key (kbd "C-h C-m") 'discover-my-major)
   (global-set-key (kbd "C-h M-m") 'discover-my-mode))
 
-(use-package flycheck
-  :ensure t
-  :config
-  (add-hook 'after-init-hook #'global-flycheck-mode)
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "C++17"))))
+;; (use-package flycheck
+;;   :ensure t
+;;   :config
+;;   (add-hook 'after-init-hook #'global-flycheck-mode)
+;;   (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "C++17"))))
 
 
 ;;;;; COMPILATION
@@ -679,7 +678,7 @@
                 auto-mode-alist)))
 
 ;; Tries to automatically detect the language of the buffer and setting the dictionary accordingly.
-;; (req-package auto-dictionary
+ ;; (req-package auto-dictionary
 ;;   :require ispell
 ;;   :config
 ;;   (add-hook 'text-mode-hook 'auto-dictionary-mode))
@@ -751,12 +750,6 @@
   (setq helm-ag-insert-at-point 'symbol))
 
 
-(use-package lua-mode
-  :ensure t
-  :config
-  (autoload 'lua-mode "lua-mode" "A mode for editing lua code." t)
-  (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode)))
-
 (use-package plantuml-mode
   :ensure t
   :config
@@ -793,20 +786,20 @@
   (global-company-mode 1)
   (global-set-key (kbd "C-<tab>") 'company-complete))
 
-(use-package lsp-mode
-  :ensure t
-  :config
-  (require 'lsp-clients)
-  :hook ((c-mode c++-mode-hook) . lsp)
-  :custom
-  (lsp-prefer-flymake nil))
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :config
+;;   (require 'lsp-clients)
+;;   :hook ((c-mode c++-mode-hook) . lsp)
+;;   :custom
+;;   (lsp-prefer-flymake nil))
 
-(use-package lsp-ui
-  :ensure t)
+;; (use-package lsp-ui
+;;   :ensure t)
 
-(use-package company-lsp
-  :ensure t
-  )
+;; (use-package company-lsp
+;;   :ensure t
+;;   )
 
 (use-package zenburn-theme
   :ensure t
@@ -859,5 +852,7 @@
   :ensure t
   :config
   (global-set-key (kbd "M-j") 'dumb-jump-go))
+
+
 
 ;;; init.el ends here

@@ -137,7 +137,7 @@
  '(org-agenda-files
    '("~/orgs/RokuTvReady/Spring22.org" "~/orgs/todo.org" "~/orgs/inbox.org"))
  '(package-selected-packages
-   '(ox-reveal ox-gfm helm-projectile dumb-jump ob-async git-timemachine smart-mode-line-powerline-theme esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org  company-irony-c-headers company-irony python-mode req-package))
+   '(flatbuffers-mode yasnippet-snippets dap-cpptools lsp-client which-key helm-xref ox-reveal ox-gfm helm-projectile dumb-jump ob-async git-timemachine smart-mode-line-powerline-theme esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org company-irony-c-headers company-irony python-mode req-package))
  '(safe-local-variable-values '((org-confirm-babel-evaluate))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -421,10 +421,10 @@
             (setq tab-width 4)
             (setq c-basic-offset tab-width)
             (setq indent-tabs-mode nil)
-            (linum-mode)
-            (add-hook (make-local-variable 'before-save-hook)
-                      'clang-format-buffer)))
+            (linum-mode)))
 
+            ;; (add-hook (make-local-variable 'before-save-hook)
+            ;;           'clang-format-buffer)
 
 ;; Create include guards
 (defun my-c-header-ifdef ()
@@ -554,40 +554,6 @@
                               ".*-autoloads\\.el\\'"))
   (recentf-mode))
 
-
-;;;;;;;;;;;;; HELM
-
-
-(use-package helm
-  :ensure t
-  :config
-  (defvar helm-recentf-fuzzy-match t)
-  (defvar helm-ff-file-name-history-use-recentf t)
-  :bind (
-         ("M-x"   . helm-M-x)
-         ("M-y"   . helm-show-kill-ring)
-         ("C-x b" . helm-mini)
-         ("C-x r" . helm-recentf)))
-
-
-(use-package helm-gtags
-  :ensure t
-  :config
-  ;; Enable helm-gtags-mode
-  (add-hook 'c-mode-hook 'helm-gtags-mode)
-  (add-hook 'c++-mode-hook 'helm-gtags-mode)
-  (add-hook 'asm-mode-hook 'helm-gtags-mode)
-  (setenv "GTAGSFORCECPP" "1")
-  ;; Set key bindings
-  (eval-after-load "helm-gtags"
-    '(progn
-       (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-find-tag)
-       (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
-       (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
-       (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
-       (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
-       (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
-       (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack))))
 
 
 ;; ;; maya mel - mode
@@ -728,7 +694,7 @@
   (yas-global-mode 1))
 
 
-(use-package yasnippet-classic-snippets
+(use-package yasnippet-snippets
   :ensure t)
 
 ;; Turn on smerge-mode when opening a file with the markers in them.
@@ -737,15 +703,6 @@
     (goto-char (point-min))
     (when (re-search-forward "^<<<<<<< " nil t)
       (smerge-mode 1))))
-
-;(add-hook 'find-file-hook 'sm-try-smerge)
-
-(use-package helm-ag
-  :ensure t
-  :requires helm
-  :config
-  (setq helm-ag-base-command "ag --nocolor --nogroup --smart-case --stats")
-  (setq helm-ag-insert-at-point 'symbol))
 
 
 (use-package plantuml-mode
@@ -784,21 +741,6 @@
   (global-company-mode 1)
   (global-set-key (kbd "C-<tab>") 'company-complete))
 
-;; (use-package lsp-mode
-;;   :ensure t
-;;   :config
-;;   (require 'lsp-clients)
-;;   :hook ((c-mode c++-mode-hook) . lsp)
-;;   :custom
-;;   (lsp-prefer-flymake nil))
-
-;; (use-package lsp-ui
-;;   :ensure t)
-
-;; (use-package company-lsp
-;;   :ensure t
-;;   )
-
 (use-package zenburn-theme
   :ensure t
   :config
@@ -810,6 +752,50 @@
 
 ;; Speed up loading of recent-f list
 (setq recentf-keep '(file-remote-p file-readable-p))
+
+
+;;;;;;;;;;;;; HELM
+
+(use-package helm-xref
+  :ensure t)
+
+(use-package helm
+  :ensure t
+  :config
+  (defvar helm-recentf-fuzzy-match t)
+  (defvar helm-ff-file-name-history-use-recentf t)
+  :bind (
+         ("M-x"   . helm-M-x)
+         ("M-y"   . helm-show-kill-ring)
+         ("C-x b" . helm-mini)
+         ("C-x r" . helm-recentf)))
+
+
+(use-package helm-gtags
+  :ensure t
+  :config
+  ;; Enable helm-gtags-mode
+  (add-hook 'c-mode-hook 'helm-gtags-mode)
+  (add-hook 'c++-mode-hook 'helm-gtags-mode)
+  (add-hook 'asm-mode-hook 'helm-gtags-mode)
+  (setenv "GTAGSFORCECPP" "1")
+  ;; Set key bindings
+  (eval-after-load "helm-gtags"
+    '(progn
+       (define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-find-tag)
+       (define-key helm-gtags-mode-map (kbd "M-r") 'helm-gtags-find-rtag)
+       (define-key helm-gtags-mode-map (kbd "M-s") 'helm-gtags-find-symbol)
+       (define-key helm-gtags-mode-map (kbd "M-g M-p") 'helm-gtags-parse-file)
+       (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
+       (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
+       (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack))))
+
+(use-package helm-ag
+  :ensure t
+  :config
+  (setq helm-ag-base-command "ag --nocolor --nogroup --smart-case --stats")
+  (setq helm-ag-insert-at-point 'symbol))
+
 
 (use-package helm-swoop
   :ensure t
@@ -836,6 +822,18 @@
   ;; Face name is `helm-swoop-line-number-face`
   (setq helm-swoop-use-line-number-face t))
 
+(use-package which-key
+  :ensure t)
+
+(use-package lsp-mode
+  :ensure t
+  :config
+  (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
+  (add-hook 'c-mode-common-hook 'lsp)
+  (with-eval-after-load 'lsp-mode
+    (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
+    (yas-global-mode)))
+
 
 (use-package smart-mode-line-powerline-theme
   :ensure t
@@ -844,13 +842,5 @@
 
 (use-package git-timemachine
   :ensure t)
-
-
-(use-package dumb-jump
-  :ensure t
-  :config
-  (global-set-key (kbd "M-j") 'dumb-jump-go))
-
-
 
 ;;; init.el ends here

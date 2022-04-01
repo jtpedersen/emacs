@@ -37,29 +37,6 @@
 
 (add-to-list 'load-path "~/.emacs.d/lisp")
 
-(if (string-equal system-type "windows-nt")
-  (let (
-        (mypaths
-         '(
-           "C:/Users/jtp/AppData/Local/Programs/Python/Python36/"
-           "C:/Program Files/Git/bin"
-           "D:/tools/bin"
-           "D:/Tools/emacs/bin"
-           )))
-    (setenv "PATH" (mapconcat 'identity mypaths ";") )
-    (setq exec-path (append mypaths (list "." exec-directory))))
-
-  ;; Set exec path to be the same as the one from the shell
-  (defun set-exec-path-from-shell-path()
-    "Set up Emacs' `exec-path' and PATH environment variable to match that used by the user's shell.
-  This is particularly useful under Mac OSX, where GUI apps are not started from a shell."
-    (interactive)
-    (let ((path-from-shell (replace-regexp-in-string "[ \t\n]*$" "" (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
-      (setenv "PATH" path-from-shell)
-      (setq exec-path (split-string path-from-shell path-separator))))
-  (set-exec-path-from-shell-path)
-    )
-
 (setq temporary-file-directory "~/.emacs.d/tmp/")
 ;; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
 ;; week.
@@ -89,19 +66,6 @@
     (message "phew")))
 (global-set-key (kbd "C-x C-c") 'dont-kill-emacs)
 
-(defun kill-other-buffers ()
-  "Kill all other buffers."
-  (interactive)
-  (mapc 'kill-buffer
-        (delq (current-buffer)
-              (remove-if-not 'buffer-file-name (buffer-list)))))
-
-(defun kill-all-buffers ()
-  "Kill all buffers."
-  (interactive)
-  (mapc 'kill-buffer (buffer-list))
-  (delete-other-windows))
-
 ;; Make font bigger/smaller.
 (global-set-key (kbd "C-+") 'text-scale-increase)
 (global-set-key (kbd "C--") 'text-scale-decrease)
@@ -109,20 +73,6 @@
 
 (setq tramp-auto-save-directory "~/tmp/tramp/")
 (setq tramp-chunksize 2000)
-
-(defun sudo-find-file (file)
-  "Find FILE with sudo/tramp."
-  (interactive
-   (list
-    (read-file-name "Sudo find file: ")))
-  (find-file (format "/sudo::%s" file)))
-
-(defun sudo-find-current ()
-  "Find current buffer file with sudo/tramp."
-  (interactive)
-  (sudo-find-file (buffer-file-name)))
-
-(global-set-key (kbd "C-x w") 'sudo-find-current)
 
 
 (custom-set-variables
@@ -144,8 +94,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(company-scrollbar-bg ((t (:background "#4ccc4ccc4ccc"))))
- '(company-scrollbar-fg ((t (:background "#3fff3fff3fff"))))
+ '(company-scrollbar-bg ((t (:background "#4ccc4ccc4ccc"))) t)
+ '(company-scrollbar-fg ((t (:background "#3fff3fff3fff"))) t)
  '(company-tooltip ((t (:inherit default :background "#385138513851"))))
  '(company-tooltip-common ((t (:inherit font-lock-constant-face))))
  '(company-tooltip-selection ((t (:inherit font-lock-function-name-face))))
@@ -169,28 +119,6 @@
 (defvar auto-revert-verbose t)            ; announce when buffer is reverted.
 (global-auto-revert-mode t)
 
-;;;;;;;;; MAC OS X SPECIFIC
-
-(if (or (eq window-system 'ns) (eq window-system 'mac))
-    (progn
-      ;; avoid, e.g., hiding with M-h etc. (Carbon Emacs specific)
-                                        ;(setq mac-pass-command-to-system nil)
-
-      ;; Let command be meta and alt be alt.
-      ;; (setq mac-option-key-is-meta nil)
-      ;; (setq mac-command-key-is-meta t)
-      ;; (setq mac-command-modifier 'meta)
-      ;; (setq mac-option-modifier nil)
-      (x-focus-frame nil)
-      (defvar ns-use-native-fullscreen nil)
-      ))
-(defun toggle-fullscreen ()
-  "Toggle full screen."
-  (interactive)
-  (set-frame-parameter
-   nil 'fullscreen
-   (when (not (frame-parameter nil 'fullscreen)) 'fullboth)))
-(global-set-key [(M-f10)] 'toggle-fullscreen)
 
 ;;;;;;;;; UTF-8 ENCODING
 
@@ -423,9 +351,6 @@
             (setq indent-tabs-mode nil)
             (linum-mode)))
 
-            ;; (add-hook (make-local-variable 'before-save-hook)
-            ;;           'clang-format-buffer)
-
 ;; Create include guards
 (defun my-c-header-ifdef ()
   "Create a header guard with random suffix on the define name."
@@ -457,6 +382,8 @@
 
 ;; ;;
 ;; ;;org mode
+(use-package ox-reveal
+  :ensure t)
 ;;
 (use-package org
   :ensure t
@@ -556,14 +483,10 @@
 
 
 
-;; ;; maya mel - mode
-(add-to-list 'auto-mode-alist '("\\.mel$" . c++-mode))
 ;; arduino files
 (add-to-list 'auto-mode-alist '("\\.ino$" . c++-mode))
 ;; ala tail -f for log files
 (add-to-list 'auto-mode-alist '("\\.log\\'" . auto-revert-mode))
-;; BitBake files
-(add-to-list 'auto-mode-alist '("\\.bb$" . sh-mode))
 
 (use-package uniquify
   :config
@@ -666,7 +589,7 @@
   :init
   (setq projectile-keymap-prefix (kbd "C-x p"))
   (setq projectile-mode-line "ρ")
-  (setq projectile-enable-caching nil)
+  (setq projectile-enable-caching 'native)
   (setq projectile-file-exists-remote-cache-expire (* 10 60))
   :config
   ;; Want projects defined by a few markers and we always want to take the top-most marker.

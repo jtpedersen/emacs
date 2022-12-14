@@ -1,46 +1,40 @@
 ;;; jtp-init --- COMMON CONFIGURATIONS
 ;;; Commentary:
 ;; my Emacs setup
-;(setq debug-on-error t)
+                                        ;(setq debug-on-error t)
+
 ;;; Code:
 (show-paren-mode t)			;; show matching parenthesis
-(column-number-mode t)			;; show current column
+(column-number-mode -1)			;; show current column
 (menu-bar-mode -1)			;; don't show menu-bar
 (tool-bar-mode -1)			;; same for the toolbar
 (scroll-bar-mode -1)			;; .. and for the scrollbar
-(put 'scroll-left 'disabled nil)        ;scroll left
 (setq inhibit-startup-message t)	;;dont show the GNU splash screen
 (transient-mark-mode t)			;; show selection from mark
-(mouse-avoidance-mode 'jump)            ;; jump mouse away when typing
 (setq visible-bell 1)                   ;; turn off bip warnings
 (auto-compression-mode t)               ;; browse tar archives
 (global-font-lock-mode t)               ;; syntax highlight
 (setq-default indent-tabs-mode nil)     ;; use spaces instead of tabs
-(fset 'yes-or-no-p 'y-or-n-p)           ;; use 'y' instead of 'yes' etc.
+(setq use-short-answers t)
 (size-indication-mode t)             ;; Show current buffer size
 
 
 ;; set a default font
 (set-face-attribute 'default nil :font "DejaVu Sans Mono" :height (pcase system-type
-                                                                        ('gnu/linux 110)
-                                                                        ('darwin 130)) :weight 'normal)
-
-;; Garbage collect at every 20 MB allocated instead of the default 8 MB. This
-;; speeds up various things.
-(setq gc-cons-threshold 20000000)
-(setq load-prefer-newer t)
+                                                                    ('gnu/linux 110)
+                                                                    ('darwin 130)) :weight 'normal)
 
 ;;a clock
 (setq display-time-day-and-date t)
 (defvar display-time-24hr-format t)
 (display-time)
 
-(add-to-list 'load-path "~/.emacs.d/lisp")
+(add-to-list 'load-path (concat user-emacs-directory "/lisp"))
 
-(setq temporary-file-directory "~/.emacs.d/tmp/")
+(setq temporary-file-directory (concat user-emacs-directory "/tmp/"))
 ;; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
 ;; week.
-(defvar backup-dir "~/.emacs.d/backups")
+(defvar backup-dir (concat user-emacs-directory "/backups"))
 (unless (file-exists-p backup-dir)
   (make-directory backup-dir))
 
@@ -57,23 +51,12 @@
 (setq backup-directory-alist `((".*" . ,backup-dir)))
 (setq auto-save-file-name-transforms `((".*" ,backup-dir t)))
 
-(defun dont-kill-emacs(bool)
-  "Disable C-x C-c binding execute 'kill-emacs'."
-  (interactive
-   (list (y-or-n-p "Do you want to kill Emacs? ")))
-  (if bool
-      (save-buffers-kill-terminal)
-    (message "phew")))
-(global-set-key (kbd "C-x C-c") 'dont-kill-emacs)
+(setq confirm-kill-emacs 'y-or-n-p)
 
 ;; Make font bigger/smaller.
 (global-set-key (kbd "C-+") 'text-scale-increase)
 (global-set-key (kbd "C--") 'text-scale-decrease)
 (global-set-key (kbd "C-0") 'text-scale-adjust)
-
-(setq tramp-auto-save-directory "~/tmp/tramp/")
-(setq tramp-chunksize 2000)
-
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -88,7 +71,11 @@
    '("~/orgs/RokuTvReady/Spring22.org" "~/orgs/todo.org" "~/orgs/inbox.org"))
  '(package-selected-packages
    '(flatbuffers-mode yasnippet-snippets dap-cpptools lsp-client which-key helm-xref ox-reveal ox-gfm helm-projectile dumb-jump ob-async git-timemachine smart-mode-line-powerline-theme esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org company-irony-c-headers company-irony python-mode req-package))
- '(safe-local-variable-values '((org-confirm-babel-evaluate))))
+ '(safe-local-variable-values
+   '((vc-prepare-patches-separately)
+     (diff-add-log-use-relative-names . t)
+     (vc-git-annotate-switches . "-w")
+     (org-confirm-babel-evaluate))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -100,7 +87,6 @@
  '(company-tooltip-common ((t (:inherit font-lock-constant-face))))
  '(company-tooltip-selection ((t (:inherit font-lock-function-name-face))))
  '(highlight-current-line-face ((t (:background "gray22")))))
-
 
 
 (defvar global-fill-column 100)
@@ -128,21 +114,20 @@
 (set-selection-coding-system 'utf-8)
 (prefer-coding-system 'utf-8)
 
-;;;;;;;;; CUSTOM COLORS & FONTS
+;; ;;;;;;;;; CUSTOM COLORS & FONTS
 
-
-(setq frame-title-format (list (format "%%S %%j ")
-                               '(buffer-file-name "%f" (dired-directory dired-directory "%b"))))
+;; (setq frame-title-format (list (format "%%S %%j ")
+;;                                '(buffer-file-name "%f" (dired-directory dired-directory "%b"))))
 
 
 ;;;;;;;;; CUSTOM KEYBINDINGS
 
-;; Do not jump to headers
-(global-set-key (kbd "C-c o")
-                '(lambda () (interactive) (ff-find-other-file nil)))
-(defvar cc-search-directories '("." "../Source/" "../../Source" "../Include" "../../Include"
-                              "../../src/*" "../../../src/&" "../include/" "../../include/*"
-                              "/usr/include/c++/*"))
+;; ;; Do not jump to headers
+;; (global-set-key (kbd "C-c o")
+;;                 '(lambda () (interactive) (ff-find-other-file nil)))
+;; (defvar cc-search-directories '("." "../Source/" "../../Source" "../Include" "../../Include"
+;;                                 "../../src/*" "../../../src/&" "../include/" "../../include/*"
+;;                                 "/usr/include/c++/*"))
 
 
 (setq compilation-window-height 30)
@@ -166,42 +151,36 @@
             (local-set-key "\C-c\C-c" 'recompile)
             (local-set-key "\C-c\C-f" 'next-error)))
 
-;; Turn off adaptive process buffering when using compilation mode because it speeds up immensely
-;; when there is a lot of output in the buffer.
-(add-hook 'compilation-mode-hook
-          (lambda () (setq process-adaptive-read-buffering nil)))
+;; ;; Turn off adaptive process buffering when using compilation mode because it speeds up immensely
+;; ;; when there is a lot of output in the buffer.
+;; (add-hook 'compilation-mode-hook
+;;           (lambda () (setq process-adaptive-read-buffering nil)))
 
-;; Turn it back on again when finished.
-(add-hook 'compilation-finish-functions
-          (lambda (buffer string)
-            (setq process-adaptive-read-buffering t)))
+;; ;; Turn it back on again when finished.
+;; (add-hook 'compilation-finish-functions
+;;           (lambda (buffer string)
+;;             (setq process-adaptive-read-buffering t)))
 
 ;; Compilation output
 (defvar compilation-scroll-output t)
 
 ;; windows endlines
-(defun remove-dos-eol ()
-  "Do not show ^M in files containing mixed UNIX and DOS line endings."
-  (interactive)
-  (setq buffer-display-table (make-display-table))
-  (aset buffer-display-table ?\^M []))
-(add-hook 'prog-mode-hook 'remove-dos-eol)
 
 
-;; Using hippie-expand instead of dabbrev-expand.
-(global-set-key (kbd "M-/") 'hippie-expand)
+;; ;; Using hippie-expand instead of dabbrev-expand.
+;; (global-set-key (kbd "M-/") 'hippie-expand)
 
-;; Put dabbrev expansions first because it's most often what's expected.
-(setq hippie-expand-try-functions-list
-      '(try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill
-        try-expand-all-abbrevs
-        try-expand-whole-kill
-        try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-list
-        try-expand-line))
+;; ;; Put dabbrev expansions first because it's most often what's expected.
+;; (setq hippie-expand-try-functions-list
+;;       '(try-expand-dabbrev
+;;         try-expand-dabbrev-all-buffers
+;;         try-expand-dabbrev-from-kill
+;;         try-expand-all-abbrevs
+;;         try-expand-whole-kill
+;;         try-complete-file-name-partially
+;;         try-complete-file-name
+;;         try-expand-list
+;;         try-expand-line))
 
 ;;;;;;;;; FUNCTIONS
 ;; convert current buffer to unix EOLs
@@ -211,6 +190,13 @@
   (progn
     (set-buffer-file-coding-system 'unix) ; or 'mac or 'dos
     (save-buffer)))
+
+(defun remove-dos-eol ()
+  "Do not show ^M in files containing mixed UNIX and DOS line endings."
+  (interactive)
+  (setq buffer-display-table (make-display-table))
+  (aset buffer-display-table ?\^M []))
+(add-hook 'prog-mode-hook 'remove-dos-eol)
 
 
 (defun clang-format-dwim ()
@@ -222,10 +208,9 @@
       (clang-format-buffer))))
 
 ;;;;;;;;; EMAIL
-(setq user-mail-address "jpedersen@roku.com")
+(load-library (concat user-emacs-directory "local-setup.el"))
 
 ;;;;;;;;; IDO
-
 (ido-mode t)
 (defvar ido-enable-flex-matching t)
 
@@ -253,22 +238,12 @@
   (interactive)
   (ispell-change-dictionary "english"))
 
-;; Open .h/.cc files in c++ mode.
-(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
-(add-to-list 'auto-mode-alist '("\\.cc\\'" . c++-mode))
 
 ;;;;;;;;; Text
 
 ;; set auto-fill-mode
 (add-hook 'text-mode-hook
           (lambda () (auto-fill-mode t)))
-
-;;;;;;;;; (La)TeX
-
-;; set auto-fill-mode
-(add-hook 'latex-mode-hook
-          (lambda () (auto-fill-mode t)))
-(setenv "TEXINPUTS" ".:~/latex/:")
 
 ;;;;;;;;; CSS-mode
 
@@ -299,12 +274,6 @@
 (require-package 'use-package)
 (require 'use-package)
 
-;;Closes *compilation* buffer after successful compilation, and otherwise when the failure was fixed
-;; to compile, it restores the original window configuration.
-;; (use-package bury-successful-compilation
-;;   :ensure t
-;;   :config
-;;   (add-hook 'prog-mode-hook 'bury-successful-compilation))
 
 ;; magic return to where you left from
 (use-package saveplace
@@ -323,7 +292,23 @@
   (savehist-mode t))
 
 
+;;; Programming
+
+;;Closes *compilation* buffer after successful compilation, and otherwise when the failure was fixed
+;; to compile, it restores the original window configuration.
+;; (use-package bury-successful-compilation
+;;   :ensure t
+;;   :config
+;;   (add-hook 'prog-mode-hook 'bury-successful-compilation))
+
+
 ;;;;;;;;; C & C++
+
+
+
+;; Open .h/.cc files in c++ mode.
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("\\.cc\\'" . c++-mode))
 
 (add-hook 'c-mode-common-hook
           (lambda ()
@@ -339,7 +324,7 @@
   (interactive)
   (save-excursion
     (let* ((guard (replace-regexp-in-string "[^0-9a-zA-Z]" "_"
-                                           (buffer-name)))
+                                            (buffer-name)))
            (guard (replace-regexp-in-string "h\\'" "" guard))
            (guard (concat guard  (shell-command-to-string "openssl rand -hex 8"))))
       (goto-char (point-min))
@@ -399,7 +384,7 @@
   (require 'ox-confluence)
   (require 'ox-reveal)
   ;; Export to jira
-   (load-file (concat user-emacs-directory "lisp/ox-jira.el"))
+  (load-file (concat user-emacs-directory "lisp/ox-jira.el"))
   ;; load plantuml
   (with-eval-after-load 'org
     (org-babel-do-load-languages
@@ -459,7 +444,7 @@
                               "/itsalltext/"  ; It's all text temp files
                               ".*\\.gz\\'"
                               "TAGS"
-                              ".emacs.d/saveplace.txt"
+                              (concat user-emacs-directory "/saveplace.txt")
                               ".*-autoloads\\.el\\'"))
   (recentf-mode))
 
@@ -547,7 +532,7 @@
                 auto-mode-alist)))
 
 ;; Tries to automatically detect the language of the buffer and setting the dictionary accordingly.
- ;; (req-package auto-dictionary
+;; (req-package auto-dictionary
 ;;   :require ispell
 ;;   :config
 ;;   (add-hook 'text-mode-hook 'auto-dictionary-mode))
@@ -615,7 +600,7 @@
   :config
   (autoload 'plantuml-mode "plantuml-mode" "A mode for editing plantuml code." t)
   (add-to-list 'auto-mode-alist '("\\.uml\\'" . plantuml-mode))
-  ;(add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+                                        ;(add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
   )
 
 (use-package langtool
@@ -729,6 +714,7 @@
 
 (use-package which-key
   :ensure t)
+
 
 (use-package lsp-mode
   :ensure t

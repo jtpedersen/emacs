@@ -1,6 +1,6 @@
 ;; my Emacs setup
 
-                                        ;(setq debug-on-error t)
+;;(setq debug-on-error t)
 
 ;;; Code:
 ;; show matching parenthesis
@@ -27,6 +27,8 @@
 (setq-default indent-tabs-mode nil)
 ;; use y-or-n predicates
 (setq use-short-answers t)
+;; Ask before quitting aka fatfinger protection
+(setq confirm-kill-emacs 'y-or-n-p)
 ;; Show current buffer size
 (size-indication-mode t)
 
@@ -63,7 +65,6 @@
 (setq backup-directory-alist `((".*" . ,backup-dir)))
 (setq auto-save-file-name-transforms `((".*" ,backup-dir t)))
 
-(setq confirm-kill-emacs 'y-or-n-p)
 
 ;; Make font bigger/smaller.
 (global-set-key (kbd "C-+") 'text-scale-increase)
@@ -253,6 +254,11 @@
 
 ;;;;;;;;; C & C++
 
+;; load the clang-format module
+(require 'clang-format)
+(add-hook 'c++-mode-hook (lambda ()
+                           (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim)))
+
 
 ;; Open .h/.cc files in c++ mode.
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
@@ -392,7 +398,6 @@
   (recentf-mode))
 
 
-
 ;; arduino files
 (add-to-list 'auto-mode-alist '("\\.ino$" . c++-mode))
 ;; ala tail -f for log files
@@ -401,11 +406,6 @@
 (use-package uniquify
   :config
   (setq uniquify-buffer-name-style 'forward))
-
-;; load the clang-format module
-(require 'clang-format)
-(add-hook 'c++-mode-hook (lambda ()
-                           (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim)))
 
 
 (use-package window-numbering

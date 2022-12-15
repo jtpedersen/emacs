@@ -127,31 +127,8 @@
 (set-selection-coding-system 'utf-8)
 (prefer-coding-system 'utf-8)
 
-;; ;;;;;;;;; CUSTOM COLORS & FONTS
-
-;; (setq frame-title-format (list (format "%%S %%j ")
-;;                                '(buffer-file-name "%f" (dired-directory dired-directory "%b"))))
-
 
 ;;;;;;;;; CUSTOM KEYBINDINGS
-
-;; ;; Do not jump to headers
-;; (global-set-key (kbd "C-c o")
-;;                 '(lambda () (interactive) (ff-find-other-file nil)))
-;; (defvar cc-search-directories '("." "../Source/" "../../Source" "../Include" "../../Include"
-;;                                 "../../src/*" "../../../src/&" "../include/" "../../include/*"
-;;                                 "/usr/include/c++/*"))
-
-
-(setq compilation-window-height 30)
-
-(defun next-error-skip-warnings ()
-  "Jumps to next error skipping warnings."
-  (interactive)
-  (let (threshold compilation-skip-threshold)
-    (setq compilation-skip-threshold 2)
-    (next-error)
-    (setq compilation-skip-threshold threshold)))
 
 
 (global-set-key [(C-f5)] 'compile)
@@ -164,36 +141,6 @@
             (local-set-key "\C-c\C-c" 'recompile)
             (local-set-key "\C-c\C-f" 'next-error)))
 
-;; ;; Turn off adaptive process buffering when using compilation mode because it speeds up immensely
-;; ;; when there is a lot of output in the buffer.
-;; (add-hook 'compilation-mode-hook
-;;           (lambda () (setq process-adaptive-read-buffering nil)))
-
-;; ;; Turn it back on again when finished.
-;; (add-hook 'compilation-finish-functions
-;;           (lambda (buffer string)
-;;             (setq process-adaptive-read-buffering t)))
-
-;; Compilation output
-(defvar compilation-scroll-output t)
-
-;; windows endlines
-
-
-;; ;; Using hippie-expand instead of dabbrev-expand.
-;; (global-set-key (kbd "M-/") 'hippie-expand)
-
-;; ;; Put dabbrev expansions first because it's most often what's expected.
-;; (setq hippie-expand-try-functions-list
-;;       '(try-expand-dabbrev
-;;         try-expand-dabbrev-all-buffers
-;;         try-expand-dabbrev-from-kill
-;;         try-expand-all-abbrevs
-;;         try-expand-whole-kill
-;;         try-complete-file-name-partially
-;;         try-complete-file-name
-;;         try-expand-list
-;;         try-expand-line))
 
 ;;;;;;;;; FUNCTIONS
 ;; convert current buffer to unix EOLs
@@ -204,6 +151,7 @@
     (set-buffer-file-coding-system 'unix) ; or 'mac or 'dos
     (save-buffer)))
 
+;; windows endlines
 (defun remove-dos-eol ()
   "Do not show ^M in files containing mixed UNIX and DOS line endings."
   (interactive)
@@ -252,12 +200,6 @@
   (ispell-change-dictionary "english"))
 
 
-;;;;;;;;; Text
-
-;; set auto-fill-mode
-(add-hook 'text-mode-hook
-          (lambda () (auto-fill-mode t)))
-
 ;;;;;;;;; CSS-mode
 
 (autoload 'css-mode "css-mode" "CSS mode." t)
@@ -294,6 +236,7 @@
   :config
   (setq-default save-place t)
   (setq save-place-file (concat user-emacs-directory "saveplace.txt" )))
+
 ;; Saves mini buffer history including search and kill ring values, and compile history.
 (use-package savehist
   :ensure t
@@ -307,16 +250,8 @@
 
 ;;; Programming
 
-;;Closes *compilation* buffer after successful compilation, and otherwise when the failure was fixed
-;; to compile, it restores the original window configuration.
-;; (use-package bury-successful-compilation
-;;   :ensure t
-;;   :config
-;;   (add-hook 'prog-mode-hook 'bury-successful-compilation))
-
 
 ;;;;;;;;; C & C++
-
 
 
 ;; Open .h/.cc files in c++ mode.
@@ -418,11 +353,6 @@
   :ensure t
   )
 
-(use-package ob-async
-  :ensure t
-  )
-
-
 ;;magit
 (use-package magit
   :ensure t
@@ -478,22 +408,10 @@
                            (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim)))
 
 
-(use-package  window-numbering
+(use-package window-numbering
   :ensure t
   :config
   (window-numbering-mode 't))
-
-(use-package discover-my-major
-  :ensure t
-  :config
-  (global-set-key (kbd "C-h C-m") 'discover-my-major)
-  (global-set-key (kbd "C-h M-m") 'discover-my-mode))
-
-;; (use-package flycheck
-;;   :ensure t
-;;   :config
-;;   (add-hook 'after-init-hook #'global-flycheck-mode)
-;;   (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "C++17"))))
 
 
 ;;;;; COMPILATION
@@ -513,12 +431,6 @@
     (toggle-read-only))
   (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
 
-
-(use-package diff-hl
-  :ensure t
-  :requires magit
-  :config
-  (add-hook 'prog-mode-hook 'diff-hl-mode))
 
 
 ;; Visualize certain like space at end of line and trailing characters after
@@ -544,25 +456,6 @@
                   ("\\.cmake\\'" . cmake-mode))
                 auto-mode-alist)))
 
-;; Tries to automatically detect the language of the buffer and setting the dictionary accordingly.
-;; (req-package auto-dictionary
-;;   :require ispell
-;;   :config
-;;   (add-hook 'text-mode-hook 'auto-dictionary-mode))
-
-(use-package flx
-  :ensure t)
-
-(use-package flx-ido
-  :ensure t
-  :requires flx
-  :config
-  (ido-mode 1)
-  (ido-everywhere 1)
-  (flx-ido-mode 1)
-  ;; Disable ido faces to see flx highlights.
-  (setq ido-enable-flex-matching t)
-  (setq ido-use-faces nil))
 
 (use-package projectile
   :ensure t
@@ -572,12 +465,6 @@
   (setq projectile-enable-caching 'native)
   (setq projectile-file-exists-remote-cache-expire (* 10 60))
   :config
-  ;; Want projects defined by a few markers and we always want to take the top-most marker.
-  ;; Reorder so other cases are secondary
-  ;; (setq projectile-project-root-files-functions #'(projectile-root-top-down
-  ;;                                                     projectile-root-top-down-recurring
-  ;;                                                     projectile-root-bottom-up
-  ;;                                                     projectile-root-local))
   (projectile-global-mode)
   )
 
@@ -607,6 +494,14 @@
     (when (re-search-forward "^<<<<<<< " nil t)
       (smerge-mode 1))))
 
+
+(add-hook 'find-file-hook 'sm-try-smerge t)
+(add-hook 'smerge-mode-hook
+      (lambda ()
+        (local-set-key (kbd "M-RET") #'smerge-keep-current)
+        (local-set-key (kbd "M-a") #'smerge-keep-all)
+        (local-set-key (kbd "M-n") #'smerge-next)
+        (local-set-key (kbd "M-p") #'smerge-prev)))
 
 (use-package plantuml-mode
   :ensure t

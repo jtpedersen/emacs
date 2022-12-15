@@ -1,22 +1,34 @@
-;;; jtp-init --- COMMON CONFIGURATIONS
-;;; Commentary:
 ;; my Emacs setup
+
                                         ;(setq debug-on-error t)
 
 ;;; Code:
-(show-paren-mode t)			;; show matching parenthesis
-(column-number-mode -1)			;; show current column
-(menu-bar-mode -1)			;; don't show menu-bar
-(tool-bar-mode -1)			;; same for the toolbar
-(scroll-bar-mode -1)			;; .. and for the scrollbar
-(setq inhibit-startup-message t)	;;dont show the GNU splash screen
-(transient-mark-mode t)			;; show selection from mark
-(setq visible-bell 1)                   ;; turn off bip warnings
-(auto-compression-mode t)               ;; browse tar archives
-(global-font-lock-mode t)               ;; syntax highlight
-(setq-default indent-tabs-mode nil)     ;; use spaces instead of tabs
+;; show matching parenthesis
+(show-paren-mode t)
+;; show current column
+(column-number-mode -1)
+;; don't show menu-bar
+(menu-bar-mode -1)
+;; same for the toolbar
+(tool-bar-mode -1)
+;; .. and for the scrollbar
+(scroll-bar-mode -1)
+;;dont show the GNU splash screen
+(setq inhibit-startup-message t)
+;; show selection from mark
+(transient-mark-mode t)
+;; turn off bip warnings
+(setq visible-bell 1)
+;; browse tar archives
+(auto-compression-mode t)
+;; syntax highlight
+(global-font-lock-mode t)
+;; use spaces instead of tabs
+(setq-default indent-tabs-mode nil)
+;; use y-or-n predicates
 (setq use-short-answers t)
-(size-indication-mode t)             ;; Show current buffer size
+;; Show current buffer size
+(size-indication-mode t)
 
 
 ;; set a default font
@@ -102,7 +114,8 @@
 
 
 ;; Auto-revert buffers when files change on disk.
-(defvar auto-revert-verbose t)            ; announce when buffer is reverted.
+(defvar auto-revert-verbose t)
+;; announce when buffer is reverted.
 (global-auto-revert-mode t)
 
 

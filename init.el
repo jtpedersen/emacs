@@ -713,7 +713,9 @@
   (setq helm-swoop-use-line-number-face t))
 
 (use-package which-key
-  :ensure t)
+  :ensure t
+  :config
+  (which-key-mode))
 
 
 (use-package lsp-mode

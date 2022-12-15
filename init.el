@@ -603,26 +603,6 @@
                                         ;(add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
   )
 
-(use-package langtool
-  :ensure t
-  :config
-  (add-hook 'org-mode-hook(lambda ()
-                            (progn
-                              (setq langtool-language-tool-jar "/home/jacob/3pp/LanguageTool-4.4/languagetool-commandline.jar")
-                              (setq langtool-default-language "en-US")
-                              (setq langtool-user-arguments '("--languagemodel" "/home/jacob/3pp/LanguageTool-4.4"))
-                              (require 'langtool)))))
-
-(use-package highlight-symbol
-  :ensure t
-  :config
-  (add-hook 'prog-mode 'highlight-symbol-mode)
-  :bind
-  (( "C-<f3>" . highlight-symbol)
-   ( "<f3>"   . highlight-symbol-next)
-   ( "S-<f3>" . highlight-symbol-prev)
-   ( "M-<f3>" . highlight-symbol-query-replace)))
-
 
 (use-package company
   :ensure t

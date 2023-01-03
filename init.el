@@ -85,7 +85,8 @@
  '(package-selected-packages
    '(flatbuffers-mode yasnippet-snippets dap-cpptools lsp-client which-key helm-xref ox-reveal ox-gfm helm-projectile dumb-jump ob-async git-timemachine smart-mode-line-powerline-theme esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org company-irony-c-headers company-irony python-mode req-package))
  '(safe-local-variable-values
-   '((vc-prepare-patches-separately)
+   '((epa-file-cache-passphrase-for-symmetric-encryption . t)
+     (vc-prepare-patches-separately)
      (diff-add-log-use-relative-names . t)
      (vc-git-annotate-switches . "-w")
      (org-confirm-babel-evaluate))))

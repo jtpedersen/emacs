@@ -80,10 +80,9 @@
    '("3693403316f0127326fa08067c2e3013eda29216829e1478e1656ea4fbbc6560" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "49ad7c8d458074db7392f8b8a49235496e9228eb2fa6d3ca3a7aa9d23454efc6" "6a9606327ecca6e772fba6ef46137d129e6d1888dcfc65d0b9b27a7a00a4af20" "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "3a727bdc09a7a141e58925258b6e873c65ccf393b2240c51553098ca93957723" "6a37be365d1d95fad2f4d185e51928c789ef7a4ccf17e7ca13ad63a8bf5b922f" "756597b162f1be60a12dbd52bab71d40d6a2845a3e3c2584c6573ee9c332a66e" default))
  '(magit-log-arguments '("--graph" "--color" "--decorate" "-n256"))
  '(magit-push-arguments '("--set-upstream"))
- '(org-agenda-files
-   '("~/orgs/RokuTvReady/Spring22.org" "~/orgs/todo.org" "~/orgs/inbox.org"))
+ '(org-agenda-files '("todo.org"))
  '(package-selected-packages
-   '(flatbuffers-mode yasnippet-snippets dap-cpptools lsp-client which-key helm-xref ox-reveal ox-gfm helm-projectile dumb-jump ob-async git-timemachine smart-mode-line-powerline-theme esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org company-irony-c-headers company-irony python-mode req-package))
+   '(yaml-mode flatbuffers-mode yasnippet-snippets dap-cpptools lsp-client which-key helm-xref ox-reveal ox-gfm helm-projectile dumb-jump ob-async git-timemachine smart-mode-line-powerline-theme esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org company-irony-c-headers company-irony python-mode req-package))
  '(safe-local-variable-values
    '((epa-file-cache-passphrase-for-symmetric-encryption . t)
      (vc-prepare-patches-separately)
@@ -310,7 +309,6 @@
 (use-package org
   :ensure t
   :config
-  (setq org-directory "~/orgs")
   (setq org-log-done t)
   ;; Yes it's long... but more is better ;)
   (defvar org-clock-history-length 35)
@@ -439,7 +437,7 @@
 (defvar whitespace-style '(face empty tabs lines-tail trailing tab-mark))
 (defvar whitespace-line-column global-fill-column)
 
-(add-hook 'prog-mode-hook 'whitespace-mode)
+;(add-hook 'prog-mode-hook 'whitespace-mode)
 
 
 (use-package keyfreq
@@ -606,6 +604,10 @@
   :config
   (which-key-mode))
 
+(use-package yaml-mode
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
 
 (use-package lsp-mode
   :ensure t

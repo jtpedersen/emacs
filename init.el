@@ -163,14 +163,6 @@
 (add-hook 'prog-mode-hook 'remove-dos-eol)
 
 
-(defun clang-format-dwim ()
-  "Perform clang-format on region or buffer."
-  (interactive)
-  (save-excursion
-    (if (region-active-p)
-        (clang-format-region (region-beginning) (region-end))
-      (clang-format-buffer))))
-
 ;;;;;;;;; IDO
 (ido-mode t)
 (defvar ido-enable-flex-matching t)
@@ -253,10 +245,21 @@
 
 ;;;;;;;;; C & C++
 
+(defun clang-format-dwim ()
+  "Perform clang-format on region or buffer."
+  (interactive)
+  (save-excursion
+    (if (region-active-p)
+        (clang-format-region (region-beginning) (region-end))
+      (clang-format-buffer))))
+
+
 ;; load the clang-format module
-(require 'clang-format)
+(use-package clang-format
+  :ensure t
+  :config
 (add-hook 'c++-mode-hook (lambda ()
-                           (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim)))
+                           (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim))))
 
 
 ;; Open .h/.cc files in c++ mode.
@@ -289,8 +292,6 @@
       (insert (concat "#endif // " guard ))
       (newline))))
 
-;; cppcheck --template='{file}:{line}:{severity}:{message}' --quiet <filename>
-
 
 ;; Elisp
 (add-hook 'emacs-lisp-mode-hook
@@ -298,7 +299,6 @@
             (eldoc-mode)
             (local-set-key (kbd "C-c b") 'eval-buffer)
             (local-set-key (kbd "C-c r") 'eval-region)))
-
 
 ;; ;;
 ;; ;;org mode

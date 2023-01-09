@@ -38,6 +38,8 @@
                                                                     ('gnu/linux 110)
                                                                     ('darwin 130)) :weight 'normal)
 
+(load-library (concat user-emacs-directory "local-setup.el"))
+
 ;;a clock
 (setq display-time-day-and-date t)
 (defvar display-time-24hr-format t)
@@ -168,9 +170,6 @@
     (if (region-active-p)
         (clang-format-region (region-beginning) (region-end))
       (clang-format-buffer))))
-
-;;;;;;;;; EMAIL
-(load-library (concat user-emacs-directory "local-setup.el"))
 
 ;;;;;;;;; IDO
 (ido-mode t)

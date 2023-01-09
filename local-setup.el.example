@@ -1,0 +1,3 @@
+(setq user-mail-address "user@example.com")
+(setq org-directory "/home/user/orgs")
+

@@ -506,7 +506,11 @@
   :config
   (autoload 'plantuml-mode "plantuml-mode" "A mode for editing plantuml code." t)
   (add-to-list 'auto-mode-alist '("\\.uml\\'" . plantuml-mode))
-                                        ;(add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+  (add-to-list 'auto-mode-alist '("\\.puml\\'" . plantuml-mode))
+  (setq plantuml-jar-path "~/plantuml.jar")
+  (setq plantuml-default-exec-mode 'jar)
+  (define-key plantuml-mode-map (kbd "C-c C-C") 'plantuml-preview)
+  (define-key plantuml-mode-map (kbd "C-c C-x") 'plantuml-preview-string)
   )
 
 
@@ -625,5 +629,11 @@
 
 (use-package git-timemachine
   :ensure t)
+
+;; https://jblevins.org/projects/markdown-mode/
+(use-package markdown-mode
+  :ensure t
+  :mode ("README\\.md\\'" . gfm-mode)
+  :init (setq markdown-command "multimarkdown"))
 
 ;;; init.el ends here

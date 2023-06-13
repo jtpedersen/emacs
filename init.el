@@ -1,6 +1,6 @@
 ;; my Emacs setup
 
-;;(setq debug-on-error t)
+;(setq debug-on-error t)
 
 ;;; Code:
 ;; show matching parenthesis
@@ -24,7 +24,7 @@
 ;; syntax highlight
 (global-font-lock-mode t)
 ;; use spaces instead of tabs
-(setq-default indent-tabs-mode nil)
+(setq-default indent-tabs-mode t)
 ;; use y-or-n predicates
 (setq use-short-answers t)
 ;; Ask before quitting aka fatfinger protection
@@ -368,7 +368,10 @@
   (setq magit-merge-arguments '("--no-ff"))
   (setq magit-pull-arguments '("--rebase"))
   (setq magit-cherry-pick-arguments '("-x"))
-  :bind (( "C-x g" . magit-status)))
+  :bind (
+	 ( "C-x g" . magit-status)
+	 ( "C-c h" . magit-log-buffer-file)
+	 ))
 
 
 ;;;;;;; Mulitple cursors
@@ -510,11 +513,11 @@
   (add-to-list 'auto-mode-alist '("\\.uml\\'" . plantuml-mode))
   (add-to-list 'auto-mode-alist '("\\.puml\\'" . plantuml-mode))
   (setq plantuml-jar-path "~/plantuml.jar")
+  (setq plantuml-output-type "png")
   (setq plantuml-default-exec-mode 'jar)
-  (define-key plantuml-mode-map (kbd "C-c C-C") 'plantuml-preview)
-  (define-key plantuml-mode-map (kbd "C-c C-x") 'plantuml-preview-string)
-  )
-
+  (add-hook 'plantuml-mode-hook
+          (lambda ()
+            (local-set-key "\C-c\C-c" 'plantuml-preview))))
 
 (use-package company
   :ensure t
@@ -576,7 +579,8 @@
   :ensure t
   :config
   (setq helm-ag-base-command "ag --nocolor --nogroup --smart-case --stats")
-  (setq helm-ag-insert-at-point 'symbol))
+  (setq helm-ag-insert-at-point 'symbol)
+  :bind (("C-c j"   . helm-do-ag)))
 
 
 (use-package helm-swoop
@@ -642,6 +646,9 @@
   :ensure t
   :config
   (setq chatgpt-shell-openai-key gpt-key))
-
-
+;This library implements a Markdown back-end (github flavor) for Org exporter, based on the `md'
+;back-end.
+(use-package ox-gfm
+  :ensure t)
+  
 ;;; init.el ends here

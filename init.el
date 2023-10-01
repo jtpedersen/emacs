@@ -105,12 +105,7 @@
  '(company-tooltip-selection ((t (:inherit font-lock-function-name-face))))
  '(highlight-current-line-face ((t (:background "gray22")))))
 
-
-(defvar global-fill-column 100)
-(setq-default fill-column global-fill-column)
-(dolist (hook '(auto-fill-mode-hook
-                prog-mode-hook))
-  (add-hook hook (lambda () (setq fill-column global-fill-column))))
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 ;; Sensible window splitting should follow the fill column.
 (when window-system
@@ -268,14 +263,6 @@
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.cc\\'" . c++-mode))
 
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            ;; (flyspell-prog-mode)
-            (setq tab-width 4)
-            (setq c-basic-offset tab-width)
-            (setq indent-tabs-mode nil)
-            (linum-mode)))
-
 ;; Create include guards
 (defun my-c-header-ifdef ()
   "Create a header guard with random suffix on the define name."
@@ -432,17 +419,6 @@
       compilation-scroll-output 'first-error
       compilation-skip-threshold 2 ; skip accros warnings
       compilation-always-kill t) ;; Don't ask, just start new compilation.
-
-;; terminal colors
-(use-package ansi-color
-  :ensure t
-  :config
-  (defun colorize-compilation-buffer ()
-    (toggle-read-only)
-    (ansi-color-apply-on-region (point-min) (point-max))
-    (toggle-read-only))
-  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
-
 
 
 ;; Visualize certain like space at end of line and trailing characters after

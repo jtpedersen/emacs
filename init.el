@@ -306,6 +306,14 @@
 ;; ;;org mode
 (use-package ox-reveal
   :ensure t)
+
+
+(defun export-tangle ()
+  "Shortcut for exporting and tangling the current org-mode buffer."
+  (interactive)
+  (org-gfm-export-to-markdown)
+  (org-babel-tangle))
+
 ;;
 (use-package org
   :ensure t
@@ -353,6 +361,7 @@
 
   :bind
   (("\C-ca" . org-agenda)
+   ("\C-ce" . export-tangle)
    ("\C-cc" . org-capture)))
 
 (use-package htmlize
@@ -616,7 +625,14 @@
 (use-package yaml-mode
   :ensure t
   :config
-  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
+  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+  :bind (("C-c C-f"   . flymake-goto-next-error)))
+
+(use-package flymake-yamllint
+  :ensure t
+  :config
+  (add-hook 'yaml-mode-hook 'flymake-yamllint-setup)
+  (add-hook 'yaml-mode-hook 'flymake-mode))
 
 (use-package lsp-mode
   :ensure t

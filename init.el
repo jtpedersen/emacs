@@ -1,6 +1,6 @@
 ;; my Emacs setup
 
-;(setq debug-on-error t)
+;;(setq debug-on-error t)
 
 ;;; Code:
 ;; show matching parenthesis
@@ -86,7 +86,7 @@
    '((concat org-directory "/timer.org")
      (concat org-directory "/todo.org")))
  '(package-selected-packages
-   '(rust-mode chatgpt-shell yaml-mode flatbuffers-mode yasnippet-snippets dap-cpptools lsp-client which-key helm-xref ox-reveal ox-gfm helm-projectile dumb-jump ob-async git-timemachine smart-mode-line-powerline-theme esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org company-irony-c-headers company-irony python-mode req-package))
+   '(eldoc-box rust-mode chatgpt-shell yaml-mode flatbuffers-mode yasnippet-snippets dap-cpptools which-key helm-xref ox-reveal ox-gfm helm-projectile dumb-jump ob-async git-timemachine smart-mode-line-powerline-theme esup helm-swoop zenburn-theme htmlize company-lsp company lsp-mode highlight-symbol yasnippet-classic-snippets all-the-icons-dired all-the-icons langtool plantuml-mode lua-mode helm-ag flx-ido flx helm-gtags use-package bury-successful-compilation el-get yasnippet ack helm-projetcile projectile cmake-mode keyfreq diff-hl highlight-current-line discover-my-major window-numbering clang-format helm multiple-cursors magit org company-irony-c-headers company-irony python-mode req-package))
  '(safe-local-variable-values
    '((epa-file-cache-passphrase-for-symmetric-encryption . t)
      (vc-prepare-patches-separately)
@@ -106,11 +106,6 @@
  '(highlight-current-line-face ((t (:background "gray22")))))
 
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
-
-;; Sensible window splitting should follow the fill column.
-(when window-system
-  (setq split-height-threshold global-fill-column
-        split-width-threshold (* 2 global-fill-column)))
 
 
 ;; Auto-revert buffers when files change on disk.
@@ -220,11 +215,7 @@
 
 
 ;; magic return to where you left from
-(use-package saveplace
-  :ensure t
-  :config
-  (setq-default save-place t)
-  (setq save-place-file (concat user-emacs-directory "saveplace.txt" )))
+(save-place-mode 1)
 
 ;; Saves mini buffer history including search and kill ring values, and compile history.
 (use-package savehist
@@ -255,7 +246,7 @@
 (use-package clang-format
   :ensure t
   :config
-(add-hook 'c++-mode-hook (lambda ()
+  (add-hook 'c++-mode-hook (lambda ()
                            (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim))))
 
 
@@ -419,14 +410,6 @@
       compilation-scroll-output 'first-error
       compilation-skip-threshold 2 ; skip accros warnings
       compilation-always-kill t) ;; Don't ask, just start new compilation.
-
-
-;; Visualize certain like space at end of line and trailing characters after
-;; fill column.
-(defvar whitespace-style '(face empty tabs lines-tail trailing tab-mark))
-(defvar whitespace-line-column global-fill-column)
-
-;(add-hook 'prog-mode-hook 'whitespace-mode)
 
 
 (use-package keyfreq
@@ -610,15 +593,25 @@
   (add-hook 'yaml-mode-hook 'flymake-yamllint-setup)
   (add-hook 'yaml-mode-hook 'flymake-mode))
 
-(use-package lsp-mode
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs 
+	       '((c-mode c++-mode) . ("clangd" "-j=8"
+				      "--log=error"
+				      "--malloc-trim"
+				      "--background-index"
+				      "--clang-tidy"
+				      "--cross-file-rename"
+				      "--completion-style=detailed"
+				      "--pch-storage=memory"
+				      "--header-insertion=never"
+				      "--header-insertion-decorators=0")))) 
+(add-hook 'c-mode-hook #'eglot-ensure)
+(add-hook 'c++-mode-hook #'eglot-ensure)
+
+(use-package eldoc-box
   :ensure t
   :config
-  (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
-  (add-hook 'c-mode-common-hook 'lsp)
-  (with-eval-after-load 'lsp-mode
-    (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
-    (yas-global-mode)))
-
+  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t))
 
 (use-package smart-mode-line-powerline-theme
   :ensure t
@@ -638,6 +631,7 @@
   :ensure t
   :config
   (setq chatgpt-shell-openai-key gpt-key))
+
 ;This library implements a Markdown back-end (github flavor) for Org exporter, based on the `md'
 ;back-end.
 (use-package ox-gfm

@@ -45,7 +45,6 @@ semanticdb/*
 /tdtd-font.el
 /tdtd.el
 /tramp
-/tuareg.el
 url/*
 /xslide-process.el
 /xslide-initial.xsl
@@ -59,3 +58,6 @@ auto-save-list/
 backups/
 /ido.last
 /tmp
+/eln-cache/
+/transient/
+

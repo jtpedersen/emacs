@@ -627,6 +627,9 @@
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown"))
 
+(use-package dockerfile-mode
+  :ensure t)
+
 (use-package chatgpt-shell
   :ensure t
   :config

@@ -411,6 +411,9 @@
       compilation-skip-threshold 2 ; skip accros warnings
       compilation-always-kill t) ;; Don't ask, just start new compilation.
 
+(use-package ansi-color
+  :ensure t
+  :hook (compilation-filter . ansi-color-compilation-filter)) 
 
 (use-package keyfreq
   :ensure t

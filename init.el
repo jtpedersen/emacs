@@ -611,6 +611,12 @@
 (add-hook 'c-mode-hook #'eglot-ensure)
 (add-hook 'c++-mode-hook #'eglot-ensure)
 
+(add-hook 'rust-mode-hook 'eglot-ensure)
+(add-to-list 'eglot-server-programs
+             '((rust-ts-mode rust-mode) .
+               ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
+
+
 (use-package eldoc-box
   :ensure t
   :config

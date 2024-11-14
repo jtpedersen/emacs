@@ -1,6 +1,10 @@
-;; my Emacs setup
-
 ;;(setq debug-on-error t)
+;; init.el - Main entry point for loading the literate configuration
+(org-babel-load-file (expand-file-name "config.org" user-emacs-directory))
+
+
+
+
 
 ;;; Code:
 ;; show matching parenthesis

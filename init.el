@@ -24,6 +24,14 @@
 (org-babel-load-file (expand-file-name "config.org" user-emacs-directory))
 
 
+(my-use-package wrap-region
+		:config
+		(wrap-region-global-mode t)
+		(wrap-region-add-wrapper "#+BEGIN_SRC emacs-lisp\n" "#+END_SRC" "#" 'org-mode))
+
+
+
+
 
 ;; ;;a clock
 ;; (setq display-time-day-and-date t)
@@ -72,19 +80,10 @@
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 
-;; Auto-revert buffers when files change on disk.
-(defvar auto-revert-verbose t)
-;; announce when buffer is reverted.
-(global-auto-revert-mode t)
 
 
 ;;;;;;;;; UTF-8 ENCODING
 
-(setq locale-coding-system 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
-(set-selection-coding-system 'utf-8)
-(prefer-coding-system 'utf-8)
 
 
 ;;;;;;;;; CUSTOM KEYBINDINGS
@@ -114,52 +113,11 @@
 
 ;;;;;;;;; C & C++
 
-(defun clang-format-dwim ()
-  "Perform clang-format on region or buffer."
-  (interactive)
-  (save-excursion
-    (if (region-active-p)
-        (clang-format-region (region-beginning) (region-end))
-      (clang-format-buffer))))
 
-
-;; load the clang-format module
-(use-package clang-format
-  :ensure t
-  :config
-  (add-hook 'c++-mode-hook (lambda ()
-                           (define-key c++-mode-map (kbd "f7") 'clang-format-dwim))))
-
-
-;; Open .h/.cc files in c++ mode.
-(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
-(add-to-list 'auto-mode-alist '("\\.cc\\'" . c++-mode))
-
-;; Create include guards
-(defun my-c-header-ifdef ()
-  "Create a header guard with random suffix on the define name."
-  (interactive)
-  (save-excursion
-    (let* ((guard (replace-regexp-in-string "[^0-9a-zA-Z]" "_"
-                                            (buffer-name)))
-           (guard (replace-regexp-in-string "h\\'" "" guard))
-           (guard (concat guard  (shell-command-to-string "openssl rand -hex 8"))))
-      (goto-char (point-min))
-      (insert (concat "#ifndef " guard))
-      (insert (concat "#define " guard))
-      (newline 2)
-      (goto-char (point-max))
-      (newline)
-      (insert (concat "#endif // " guard ))
-      (newline))))
+;; 
 
 
 ;; Elisp
-(add-hook 'emacs-lisp-mode-hook
-          (lambda ()
-            (eldoc-mode)
-            (local-set-key (kbd "C-c b") 'eval-buffer)
-            (local-set-key (kbd "C-c r") 'eval-region)))
 
 ;; ;;
 ;; ;;org mode
@@ -252,21 +210,6 @@
         ( "C-;" . mc/mark-all-dwim)))
 
 ;; recentf
-(use-package recentf
-  :config
-  (setq recentf-max-saved-items 200
-        ;; Cleanup recent files only when Emacs is idle, but not when the mode
-        ;; is enabled, because that unnecessarily slows down Emacs. My Emacs
-        ;; idles often enough to have the recent files list clean up regularly
-        recentf-auto-cleanup 300
-        recentf-exclude (list "/\\.git/.*\\'" ; Git contents
-                              "/elpa/.*\\'"   ; Package files
-                              "/itsalltext/"  ; It's all text temp files
-                              ".*\\.gz\\'"
-                              "TAGS"
-                              (concat user-emacs-directory "/saveplace.txt")
-                              ".*-autoloads\\.el\\'"))
-  (recentf-mode))
 
 
 ;; arduino files
@@ -279,22 +222,8 @@
 ;;   (setq uniquify-buffer-name-style 'forward))
 
 
-(use-package window-numbering
-  :ensure t
-  :config
-  (window-numbering-mode 't))
 
 
-;;;;; COMPILATION
-(setq compilation-scroll-output t)
-(setq compilation-window-height 30
-      compilation-scroll-output 'first-error
-      compilation-skip-threshold 2 ; skip accros warnings
-      compilation-always-kill t) ;; Don't ask, just start new compilation.
-
-(use-package ansi-color
-  :ensure t
-  :hook (compilation-filter . ansi-color-compilation-filter)) 
 
 (use-package keyfreq
   :ensure t
@@ -460,69 +389,31 @@
   ;; Face name is `helm-swoop-line-number-face`
   (setq helm-swoop-use-line-number-face t))
 
-(use-package which-key
-  :ensure t
-  :config
-  (which-key-mode))
 
-(use-package yaml-mode
-  :ensure t
-  :config
-  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
-  :bind (("C-c C-f"   . flymake-goto-next-error)))
+;; default in emacs-30
+;; (use-package which-key
+;;   :ensure t
+;;   :config
+;;   (which-key-mode))
 
-(use-package flymake-yamllint
-  :ensure t
-  :config
-  (add-hook 'yaml-mode-hook 'flymake-yamllint-setup)
-  (add-hook 'yaml-mode-hook 'flymake-mode))
 
-(with-eval-after-load 'eglot
-  (add-to-list 'eglot-server-programs 
-	       '((c-mode c++-mode) . ("clangd" "-j=8"
-				      "--log=error"
-				      "--malloc-trim"
-				      "--background-index"
-				      "--clang-tidy"
-				      "--cross-file-rename"
-				      "--completion-style=detailed"
-				      "--pch-storage=memory"
-				      "--header-insertion=never"
-				      "--header-insertion-decorators=0"))))
 	       ;; ((rust-ts-mode rust-mode) .
 	       ;; 	("rust-analyzer" :initializationOptions (:check (:command "clippy"))))))
-(add-hook 'c-mode-hook #'eglot-ensure)
-(add-hook 'c++-mode-hook #'eglot-ensure)
 
-(add-hook 'rust-mode-hook 'eglot-ensure)
+
 (setq rust-format-on-save t)
 
-(use-package eldoc-box
-  :ensure t
-  :config
-  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t))
 
-(use-package smart-mode-line-powerline-theme
-  :ensure t
-  :config
-  (setq sml/theme 'respectful))
+;; (use-package smart-mode-line-powerline-theme
+;;   :ensure t
+;;   :config
+;;   (setq sml/theme 'respectful))
 
-(use-package git-timemachine
-  :ensure t)
 
-;; https://jblevins.org/projects/markdown-mode/
-(use-package markdown-mode
-  :ensure t
-  :mode ("README\\.md\\'" . gfm-mode)
-  :init (setq markdown-command "multimarkdown"))
-
-(use-package dockerfile-mode
-  :ensure t)
-
-(use-package chatgpt-shell
-  :ensure t
-  :config
-  (setq chatgpt-shell-openai-key gpt-key))
+;; (use-package chatgpt-shell
+;;   :ensure t
+;;   :config
+;;   (setq chatgpt-shell-openai-key gpt-key))
 
 ;This library implements a Markdown back-end (github flavor) for Org exporter, based on the `md'
 ;back-end.

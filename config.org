@@ -97,37 +97,6 @@ machine that i am using.
 #+end_src
 
 
-** Viewing files
-#+begin_src emacs-lisp
-;; browse tar archives
-(auto-compression-mode t)
-#+end_src
-
-
-
-** Backup pruning
-Save all backups and auto-saves to a temporary directory. And clean it for all files older than a week.
-
-
-
-#+begin_src emacs-lisp
-(message "Deleting backup files older than a week...")
-(let ((week (* 60 60 24 7))
-      (current (float-time (current-time))))
-  (dolist (file (directory-files backup-dir t))
-    (when (and (backup-file-name-p file)
-               (> (- current (float-time (nth 5 (file-attributes file))))
-                  week))
-      (message "%s" file)
-      (delete-file file))))
-
-(setq backup-directory-alist `((".*" . ,backup-dir)))
-(setq auto-save-file-name-transforms `((".*" ,backup-dir t)))
-#+end_src
-
-*** TODO Make this run after loading emacs...
-
-
 * Packages setup
 
 #+begin_src emacs-lisp
@@ -164,15 +133,94 @@ Defaults to `:defer t` unless overridden in ARGS."
 #+end_src
 
 
-* Navigating files
+* File associations
 
-** Magic return to where you left from
+** Open .h/.cc files in c++ mode.
+
+#+begin_src emacs-lisp
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("\\.cc\\'" . c++-mode))
+#+end_src
+
+
+* Viewing files
+
+** Browse archives
+#+begin_src emacs-lisp
+(auto-compression-mode t)
+#+end_src
+
+** Auto reverting
+#+begin_src emacs-lisp
+;; Auto-revert buffers when files change on disk.
+(defvar auto-revert-verbose t)
+;; announce when buffer is reverted.
+(global-auto-revert-mode t)
+#+end_src
+
+** Backup pruning
+Save all backups and auto-saves to a temporary directory. And clean it for all files older than a week.
+
+
+
+#+begin_src emacs-lisp
+(message "Deleting backup files older than a week...")
+(let ((week (* 60 60 24 7))
+      (current (float-time (current-time))))
+  (dolist (file (directory-files backup-dir t))
+    (when (and (backup-file-name-p file)
+               (> (- current (float-time (nth 5 (file-attributes file))))
+                  week))
+      (message "%s" file)
+      (delete-file file))))
+
+(setq backup-directory-alist `((".*" . ,backup-dir)))
+(setq auto-save-file-name-transforms `((".*" ,backup-dir t)))
+#+end_src
+
+*** TODO Make this run after loading emacs...
+
+* Navigating
+
+** Between open buffers
+
+#+begin_src emacs-lisp
+(my-use-package window-numbering
+  :config
+  (window-numbering-mode 't))
+#+end_src
+
+
+** Files
+
+*** Show recently opened files
+
+#+begin_src emacs-lisp
+(my-use-package recentf
+  :config
+  (setq recentf-max-saved-items 200
+        ;; Cleanup recent files only when Emacs is idle, but not when the mode
+        ;; is enabled, because that unnecessarily slows down Emacs. My Emacs
+        ;; idles often enough to have the recent files list clean up regularly
+        recentf-auto-cleanup 300
+        recentf-exclude (list "/\\.git/.*\\'" ; Git contents
+                              "/elpa/.*\\'"   ; Package files
+                              "/itsalltext/"  ; It's all text temp files
+                              ".*\\.gz\\'"
+                              "TAGS"
+                              (concat user-emacs-directory "/saveplace.txt")
+                              ".*-autoloads\\.el\\'"))
+  (recentf-mode))
+#+end_src
+
+
+*** Magic return to where you left from
 I am not sure that this really works..
 #+begin_src emacs-lisp
 (save-place-mode 1)
 #+end_src
 
-** Saves mini buffer history including search and kill ring values, and compile history.
+*** Saves mini buffer history including search and kill ring values, and compile history.
 
 #+begin_src emacs-lisp
 (my-use-package savehist
@@ -232,6 +280,135 @@ Remember you may have to install aspell
             (local-set-key "\C-c\C-c" 'recompile)
             (local-set-key "\C-c\C-f" 'next-error)))
 #+end_src
+
+
+** Viewing compilation output
+
+This can cost in performance, as something may be examining the
+compilation buffer. But it should be ok, for now..
+
+#+begin_src emacs-lisp
+(setq compilation-scroll-output t)
+(setq compilation-window-height 30
+      compilation-scroll-output 'first-error
+      compilation-skip-threshold 2 ; skip accros warnings
+      compilation-always-kill t) ;; Don't ask, just start new compilation.
+
+(my-use-package ansi-color
+  :hook (compilation-filter . ansi-color-compilation-filter)) 
+#+end_src
+
+
+** eglot
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs 
+	       '((c-mode c++-mode) . ("clangd" "-j=8"
+				      "--log=error"
+				      "--malloc-trim"
+				      "--background-index"
+				      "--clang-tidy"
+				      "--cross-file-rename"
+				      "--completion-style=detailed"
+				      "--pch-storage=memory"
+				      "--header-insertion=never"
+				      "--header-insertion-decorators=0"))))
+
+(add-hook 'c-mode-hook #'eglot-ensure)
+(add-hook 'c++-mode-hook #'eglot-ensure)
+(add-hook 'rust-mode-hook #'eglot-ensure)
+
+(my-use-package eldoc-box
+  :ensure t
+  :config
+  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t))
+
+#+end_src
+
+
+
+** elisp
+
+#+begin_src emacs-lisp
+(add-hook 'emacs-lisp-mode-hook
+          (lambda ()
+            (eldoc-mode)
+            (local-set-key (kbd "C-c b") 'eval-buffer)
+            (local-set-key (kbd "C-c r") 'eval-region)))
+#+end_src
+
+
+** C++ 
+
+*** Create include guards
+
+#+begin_src emacs-lisp
+(defun my-c-header-ifdef ()
+  "Create a header guard with random suffix on the define name."
+  (interactive)
+  (save-excursion
+    (let* ((guard (replace-regexp-in-string "[^0-9a-zA-Z]" "_"
+                                            (buffer-name)))
+           (guard (replace-regexp-in-string "h\\'" "" guard))
+           (guard (concat guard  (shell-command-to-string "openssl rand -hex 8"))))
+      (goto-char (point-min))
+      (insert (concat "#ifndef " guard))
+      (insert (concat "#define " guard))
+      (newline 2)
+      (goto-char (point-max))
+      (newline)
+      (insert (concat "#endif // " guard ))
+      (newline))))
+#+end_src
+***  clang-format
+#+begin_src emacs-lisp
+(defun clang-format-dwim ()
+  "Perform clang-format on region or buffer."
+  (interactive)
+  (save-excursion
+    (if (region-active-p)
+        (clang-format-region (region-beginning) (region-end))
+      (clang-format-buffer))))
+
+
+;; load the clang-format module
+(my-use-package clang-format
+  :ensure t
+  :config
+  (add-hook 'c++-mode-hook (lambda ()
+                           (define-key c++-mode-map (kbd "f7") 'clang-format-dwim))))
+#+end_src
+** Yaml
+#+begin_src emacs-lisp
+(use-package yaml-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
+
+(use-package flymake-yamllint
+  :ensure t
+  :config
+  (add-hook 'yaml-mode-hook 'flymake-yamllint-setup)
+  (add-hook 'yaml-mode-hook 'flymake-mode))
+#+end_src
+
+
+
+(my-use-package git-timemachine)
+
+** Markdown
+[[https://jblevins.org/projects/markdown-mode/][https://jblevins.org/projects/markdown-mode/]]
+
+#+BEGIN_SRC emacs-lisp
+(my-use-package markdown-mode
+  :mode ("README\\.md\\'" . gfm-mode)
+  :init (setq markdown-command "multimarkdown"))
+#+END_SRC
+
+** Docker
+#+BEGIN_SRC emacs-lisp
+(my-use-package dockerfile-mode)
+#+END_SRC
 
 
 

@@ -1,1 +1,259 @@
+#+TITLE: Literate emacs
+#+AUTHOR: pedersen
+#+OPTIONS: toc:nil num:nil
+
+* Core Settings
+
+
+
+** Paths
+
+#+begin_src emacs-lisp
+(setq native-comp-eln-load-path (list (concat user-emacs-directory "eln-cache/")))
+(add-to-list 'load-path (concat user-emacs-directory "/lisp"))
+(setq temporary-file-directory (concat user-emacs-directory "/tmp/"))
+(defvar backup-dir (concat user-emacs-directory "/backups"))
+(unless (file-exists-p backup-dir)
+  (make-directory backup-dir))
+
+#+end_src
+
+
+** Speed up loading
+
+#+begin_src emacs-lisp
+(setq gc-cons-threshold 100000000)
+(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 800000)))
+#+end_src
+
+
+
+** Local setup
+This is a file with setup for email account / various tokens etc that
+is required, but i do not want to publish or is specific to the
+machine that i am using.
+
+#+begin_src emacs-lisp :tangle no
+(setq user-mail-address "user@example.com")
+(setq org-directory "/home/user/orgs")
+#+end_src
+
+
+#+begin_src emacs-lisp
+(load-library (concat user-emacs-directory "local-setup.el"))  
+#+end_src
+
+
+** UTF-8 Encoding
+#+BEGIN_SRC emacs-lisp
+(setq locale-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+#+END_SRC
+
+** Lean ui
+#+begin_src emacs-lisp
+;; don't show menu-bar
+(menu-bar-mode -1)
+;; same for the toolbar
+(tool-bar-mode -1)
+;; .. and for the scrollbar
+(scroll-bar-mode -1)
+;;dont show the GNU splash screen
+(setq inhibit-startup-message t)
+;; show selection from mark
+(transient-mark-mode t)
+;; syntax highlight
+(global-font-lock-mode t)
+;; Show current buffer size
+(size-indication-mode t)
+#+end_src
+
+** Font choice
+#+begin_src emacs-lisp 
+(set-face-attribute 'default nil :font "DejaVu Sans Mono" :height (pcase system-type
+                                                                    ('gnu/linux 110)
+                                                                    ('darwin 130)) :weight 'normal)
+#+end_src
+
+*** Make font bigger/smaller.
+#+begin_src emacs-lisp
+(global-set-key (kbd "C-+") 'text-scale-increase)
+(global-set-key (kbd "C--") 'text-scale-decrease)
+(global-set-key (kbd "C-0") 'text-scale-adjust)
+#+end_src
+
+
+** Nice behavioral tweaks
+#+begin_src emacs-lisp
+;; turn off bip warnings
+(setq visible-bell 1)
+;; use y-or-n predicates
+(setq use-short-answers t)
+;; Fatfinger protection
+(setq confirm-kill-emacs 'y-or-n-p)
+#+end_src
+
+
+** Viewing files
+#+begin_src emacs-lisp
+;; browse tar archives
+(auto-compression-mode t)
+#+end_src
+
+
+
+** Backup pruning
+Save all backups and auto-saves to a temporary directory. And clean it for all files older than a week.
+
+
+
+#+begin_src emacs-lisp
+(message "Deleting backup files older than a week...")
+(let ((week (* 60 60 24 7))
+      (current (float-time (current-time))))
+  (dolist (file (directory-files backup-dir t))
+    (when (and (backup-file-name-p file)
+               (> (- current (float-time (nth 5 (file-attributes file))))
+                  week))
+      (message "%s" file)
+      (delete-file file))))
+
+(setq backup-directory-alist `((".*" . ,backup-dir)))
+(setq auto-save-file-name-transforms `((".*" ,backup-dir t)))
+#+end_src
+
+*** TODO Make this run after loading emacs...
+
+
+* Packages setup
+
+#+begin_src emacs-lisp
+(require 'package)
+(setq package-archives
+      '(("gnu" . "http://elpa.gnu.org/packages/")
+        ("melpa" . "http://melpa.org/packages/")))
+
+
+(defun require-package (package)
+  "Ensure PACKAGE is installed. If not, refresh package contents and install it."
+  (unless (package-installed-p package)
+    (unless package-archive-contents
+      (package-refresh-contents))
+    (if (package-installed-p package)
+        t
+      (progn
+        (package-install package)
+        (require package)))))
+
+(require-package 'use-package)
+(require 'use-package)
+(setq use-package-always-ensure t)
+
+(defmacro my-use-package (package &rest args)
+  "Ensure PACKAGE is installed using `require-package` and configure it with `use-package`.
+Defaults to `:defer t` unless overridden in ARGS."
+  `(progn
+     (require-package ',package)
+     (use-package ,package
+       :defer t
+       ,@args)))
+
+#+end_src
+
+
+* Navigating files
+
+** Magic return to where you left from
+I am not sure that this really works..
+#+begin_src emacs-lisp
+(save-place-mode 1)
+#+end_src
+
+** Saves mini buffer history including search and kill ring values, and compile history.
+
+#+begin_src emacs-lisp
+(my-use-package savehist
+  :config
+  (setq savehist-additional-variables
+        '(search-ring regexp-search-ring kill-ring compile-history))
+  (setq savehist-autosave-interval 60)
+  (setq savehist-file (concat user-emacs-directory "savehist"))
+  (savehist-mode t))
+#+end_src
+
+
+
+
+* Writing
+
+Remember you may have to install aspell 
+
+#+begin_src emacs-lisp
+;; Set aspell as spell program
+(defvar ispell-program-name "aspell")
+
+;; Speed up aspell: ultra | fast | normal
+(defvar ispell-extra-args '("--sug-mode=normal"))
+
+;; Flyspell activation for text mode
+(add-hook 'text-mode-hook
+          (lambda () (flyspell-mode t)))
+
+;; Change to danish dict
+(defun da-spell ()
+  "Set Ippell to use Danish dictionary."
+  (interactive)
+  (ispell-change-dictionary "dansk"))
+
+;; Change to english dict
+(defun en-spell ()
+  "Set Ispell to use English dictionary."
+  (interactive)
+  (ispell-change-dictionary "english"))
+#+end_src
+
+
+
+* Programming
+
+** Compile / Error key bindings
+#+begin_src emacs-lisp
+
+(global-set-key [(C-f5)] 'compile)
+(global-set-key [(f5)] 'recompile)
+(global-set-key [(f6)] 'next-error)
+(global-set-key [(C-f6)] 'flycheck-next-error)
+
+(add-hook 'prog-mode-hook
+          (lambda ()
+            (local-set-key "\C-c\C-c" 'recompile)
+            (local-set-key "\C-c\C-f" 'next-error)))
+#+end_src
+
+
+
+* Helper functions
+
+** Convert current buffer to unix EOLs
+#+begin_src emacs-lisp
+(defun to-unix-eol ()
+  "Change current buffer's line ending to unix convention."
+  (interactive)
+  (progn
+    (set-buffer-file-coding-system 'unix) ; or 'mac or 'dos
+    (save-buffer)))
+#+end_src
+
+** windows endlines
+#+begin_src emacs-lisp
+(defun remove-dos-eol ()
+  "Do not show ^M in files containing mixed UNIX and DOS line endings."
+  (interactive)
+  (setq buffer-display-table (make-display-table))
+  (aset buffer-display-table ?\^M []))
+(add-hook 'prog-mode-hook 'remove-dos-eol)
+#+end_src
 

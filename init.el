@@ -1,85 +1,41 @@
-;;(setq debug-on-error t)
-;; init.el - Main entry point for loading the literate configuration
+(setq debug-on-error t)
+
+;; Ensure Org-mode and Babel are loaded
+(require 'org)
+
+;; Setup Org-Babel for code execution
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)    
+   (shell . t)         
+   (plantuml . t)
+   (python . t)
+   ))
+
+;; Disable confirmation prompts for code block execution
+(setq org-confirm-babel-evaluate nil)
+
+;; Enable syntax highlighting for code blocks
+(setq org-src-fontify-natively t)
+(setq org-src-preserve-indentation t)
+(setq org-src-tab-acts-natively t)
+
+;; Load the main configuration 
 (org-babel-load-file (expand-file-name "config.org" user-emacs-directory))
 
 
 
+;; ;;a clock
+;; (setq display-time-day-and-date t)
+;; (defvar display-time-24hr-format t)
+;; (display-time)
 
 
-;;; Code:
-;; show matching parenthesis
-(show-paren-mode t)
-;; show current column
-(column-number-mode -1)
-;; don't show menu-bar
-(menu-bar-mode -1)
-;; same for the toolbar
-(tool-bar-mode -1)
-;; .. and for the scrollbar
-(scroll-bar-mode -1)
-;;dont show the GNU splash screen
-(setq inhibit-startup-message t)
-;; show selection from mark
-(transient-mark-mode t)
-;; turn off bip warnings
-(setq visible-bell 1)
-;; browse tar archives
-(auto-compression-mode t)
-;; syntax highlight
-(global-font-lock-mode t)
-;; use spaces instead of tabs
-(setq-default indent-tabs-mode t)
-;; use y-or-n predicates
-(setq use-short-answers t)
-;; Ask before quitting aka fatfinger protection
-(setq confirm-kill-emacs 'y-or-n-p)
-;; Show current buffer size
-(size-indication-mode t)
-
-(setq gc-cons-threshold 100000000)
-(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 800000)))
 
 
-;; set a default font
-(set-face-attribute 'default nil :font "DejaVu Sans Mono" :height (pcase system-type
-                                                                    ('gnu/linux 110)
-                                                                    ('darwin 130)) :weight 'normal)
-
-(setq native-comp-eln-load-path (list (concat user-emacs-directory "eln-cache/")))
-(load-library (concat user-emacs-directory "local-setup.el"))
-
-;;a clock
-(setq display-time-day-and-date t)
-(defvar display-time-24hr-format t)
-(display-time)
-
-(add-to-list 'load-path (concat user-emacs-directory "/lisp"))
-
-(setq temporary-file-directory (concat user-emacs-directory "/tmp/"))
-;; Save all backups and auto-saves to a temporary directory. And clean it for all files older than a
-;; week.
-(defvar backup-dir (concat user-emacs-directory "/backups"))
-(unless (file-exists-p backup-dir)
-  (make-directory backup-dir))
-
-(message "Deleting backup files older than a week...")
-(let ((week (* 60 60 24 7))
-      (current (float-time (current-time))))
-  (dolist (file (directory-files backup-dir t))
-    (when (and (backup-file-name-p file)
-               (> (- current (float-time (nth 5 (file-attributes file))))
-                  week))
-      (message "%s" file)
-      (delete-file file))))
-
-(setq backup-directory-alist `((".*" . ,backup-dir)))
-(setq auto-save-file-name-transforms `((".*" ,backup-dir t)))
 
 
-;; Make font bigger/smaller.
-(global-set-key (kbd "C-+") 'text-scale-increase)
-(global-set-key (kbd "C--") 'text-scale-decrease)
-(global-set-key (kbd "C-0") 'text-scale-adjust)
+
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -133,34 +89,7 @@
 
 ;;;;;;;;; CUSTOM KEYBINDINGS
 
-
-(global-set-key [(C-f5)] 'compile)
-(global-set-key [(f5)] 'recompile)
-(global-set-key [(f6)] 'next-error)
-(global-set-key [(C-f6)] 'flycheck-next-error)
-
-(add-hook 'prog-mode-hook
-          (lambda ()
-            (local-set-key "\C-c\C-c" 'recompile)
-            (local-set-key "\C-c\C-f" 'next-error)))
-
-
 ;;;;;;;;; FUNCTIONS
-;; convert current buffer to unix EOLs
-(defun to-unix-eol ()
-  "Change current buffer's line ending to unix convention."
-  (interactive)
-  (progn
-    (set-buffer-file-coding-system 'unix) ; or 'mac or 'dos
-    (save-buffer)))
-
-;; windows endlines
-(defun remove-dos-eol ()
-  "Do not show ^M in files containing mixed UNIX and DOS line endings."
-  (interactive)
-  (setq buffer-display-table (make-display-table))
-  (aset buffer-display-table ?\^M []))
-(add-hook 'prog-mode-hook 'remove-dos-eol)
 
 
 ;;;;;;;;; IDO
@@ -169,27 +98,6 @@
 
 ;;;;;;;;; SPELLING
 
-;; Set aspell as spell program
-(defvar ispell-program-name "aspell")
-
-;; Speed up aspell: ultra | fast | normal
-(defvar ispell-extra-args '("--sug-mode=normal"))
-
-;; Flyspell activation for text mode
-(add-hook 'text-mode-hook
-          (lambda () (flyspell-mode t)))
-
-;; Change to danish dict
-(defun da-spell ()
-  "Set Ippell to use Danish dictionary."
-  (interactive)
-  (ispell-change-dictionary "dansk"))
-
-;; Change to english dict
-(defun en-spell ()
-  "Set Ispell to use English dictionary."
-  (interactive)
-  (ispell-change-dictionary "english"))
 
 
 ;;;;;;;;; CSS-mode
@@ -198,41 +106,7 @@
 (setq auto-mode-alist (append '(("\\.css$" . css-mode)) auto-mode-alist))
 
 
-(require 'package)
-                                        ;packages
-(setq package-archives
-      '(("gnu" . "http://elpa.gnu.org/packages/")
-        ("melpa" . "http://melpa.org/packages/")))
 
-
-(defun require-package (package)
-  "Refresh package archives, check PACKAGE presence and install if it's not installed."
-  (if (null (require package nil t))
-      (progn (let* ((ARCHIVES (if (null package-archive-contents)
-                                  (progn (package-refresh-contents)
-                                         package-archive-contents)
-                                package-archive-contents))
-                    (AVAIL (assoc package ARCHIVES)))
-               (if AVAIL
-                   (package-install package)))
-             (require package))))
-
-(require-package 'use-package)
-(require 'use-package)
-
-
-;; magic return to where you left from
-(save-place-mode 1)
-
-;; Saves mini buffer history including search and kill ring values, and compile history.
-(use-package savehist
-  :ensure t
-  :config
-  (setq savehist-additional-variables
-        '(search-ring regexp-search-ring kill-ring compile-history))
-  (setq savehist-autosave-interval 60)
-  (setq savehist-file (concat user-emacs-directory "savehist"))
-  (savehist-mode t))
 
 
 ;;; Programming
@@ -400,9 +274,9 @@
 ;; ala tail -f for log files
 (add-to-list 'auto-mode-alist '("\\.log\\'" . auto-revert-mode))
 
-(use-package uniquify
-  :config
-  (setq uniquify-buffer-name-style 'forward))
+;; (use-package uniquify
+;;   :config
+;;   (setq uniquify-buffer-name-style 'forward))
 
 
 (use-package window-numbering

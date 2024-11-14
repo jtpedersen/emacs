@@ -43,6 +43,54 @@ machine that i am using.
 (load-library (concat user-emacs-directory "local-setup.el"))  
 #+end_src
 
+* Packages setup
+
+#+begin_src emacs-lisp
+(require 'package)
+(setq package-archives
+      '(("gnu" . "http://elpa.gnu.org/packages/")
+        ("melpa" . "http://melpa.org/packages/")))
+
+
+(defun require-package (package)
+  "Ensure PACKAGE is installed. If not, refresh package contents and install it."
+  (unless (package-installed-p package)
+    (unless package-archive-contents
+      (package-refresh-contents))
+    (if (package-installed-p package)
+        t
+      (progn
+        (package-install package)
+        (require package)))))
+
+(require-package 'use-package)
+(require 'use-package)
+(setq use-package-always-ensure t)
+
+
+(defmacro my-use-package (package &rest args)
+  "Ensure PACKAGE is installed using `require-package` and configure it with `use-package`.
+Defaults to `:defer t` unless overridden in ARGS."
+  `(progn
+     (require-package ',package)
+     (use-package ,package
+       ,@(if (plist-member args :defer)
+             args  ; Use the provided arguments as-is if :defer is already set
+           (append '(:defer t) args)))))
+
+
+(defmacro my-use-package-startup (package &rest args)
+  "Ensure PACKAGE is installed and loaded eagerly at startup using `use-package`.
+Forwards ARGS to `use-package`."
+  `(progn
+     (require-package ',package)
+     (use-package ,package
+       ,@args)))
+
+#+end_src
+
+
+* UI 
 
 ** UTF-8 Encoding
 #+BEGIN_SRC emacs-lisp
@@ -96,42 +144,12 @@ machine that i am using.
 (setq confirm-kill-emacs 'y-or-n-p)
 #+end_src
 
-
-* Packages setup
-
-#+begin_src emacs-lisp
-(require 'package)
-(setq package-archives
-      '(("gnu" . "http://elpa.gnu.org/packages/")
-        ("melpa" . "http://melpa.org/packages/")))
-
-
-(defun require-package (package)
-  "Ensure PACKAGE is installed. If not, refresh package contents and install it."
-  (unless (package-installed-p package)
-    (unless package-archive-contents
-      (package-refresh-contents))
-    (if (package-installed-p package)
-        t
-      (progn
-        (package-install package)
-        (require package)))))
-
-(require-package 'use-package)
-(require 'use-package)
-(setq use-package-always-ensure t)
-
-(defmacro my-use-package (package &rest args)
-  "Ensure PACKAGE is installed using `require-package` and configure it with `use-package`.
-Defaults to `:defer t` unless overridden in ARGS."
-  `(progn
-     (require-package ',package)
-     (use-package ,package
-       :defer t
-       ,@args)))
-
-#+end_src
-
+** Theme
+#+BEGIN_SRC emacs-lisp
+(my-use-package-startup zenburn-theme
+  :config
+  (load-theme 'zenburn t))
+#+END_SRC
 
 * File associations
 
@@ -141,6 +159,13 @@ Defaults to `:defer t` unless overridden in ARGS."
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 (add-to-list 'auto-mode-alist '("\\.cc\\'" . c++-mode))
 #+end_src
+
+** arduino files
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'auto-mode-alist '("\\.ino$" . c++-mode))
+#+END_SRC
+
+* Finding files
 
 
 * Viewing files
@@ -180,12 +205,17 @@ Save all backups and auto-saves to a temporary directory. And clean it for all f
 
 *** TODO Make this run after loading emacs...
 
+** HTML
+#+BEGIN_SRC emacs-lisp
+(my-use-package htmlize)
+#+END_SRC
+
 * Navigating
 
 ** Between open buffers
 
 #+begin_src emacs-lisp
-(my-use-package window-numbering
+(my-use-package-startup window-numbering
   :config
   (window-numbering-mode 't))
 #+end_src
@@ -193,10 +223,24 @@ Save all backups and auto-saves to a temporary directory. And clean it for all f
 
 ** Files
 
+*** Projectile
+#+BEGIN_SRC emacs-lisp
+(my-use-package-startup projectile
+  :ensure t
+  :init
+  (setq projectile-keymap-prefix (kbd "C-x p"))
+  (setq projectile-mode-line "ρ")
+  (setq projectile-enable-caching 'native)
+  (setq projectile-file-exists-remote-cache-expire (* 10 60))
+  :config
+  (projectile-mode +1)
+  )
+#+END_SRC
+
 *** Show recently opened files
 
 #+begin_src emacs-lisp
-(my-use-package recentf
+(my-use-package-startup recentf
   :config
   (setq recentf-max-saved-items 200
         ;; Cleanup recent files only when Emacs is idle, but not when the mode
@@ -223,7 +267,7 @@ I am not sure that this really works..
 *** Saves mini buffer history including search and kill ring values, and compile history.
 
 #+begin_src emacs-lisp
-(my-use-package savehist
+(my-use-package-startup savehist
   :config
   (setq savehist-additional-variables
         '(search-ring regexp-search-ring kill-ring compile-history))
@@ -234,6 +278,52 @@ I am not sure that this really works..
 
 
 
+** Mulitple cursors
+#+BEGIN_SRC emacs-lisp
+(my-use-package-startup multiple-cursors
+  :config
+  :bind(( "C->"     . mc/mark-next-like-this)
+        ( "C-<"     . mc/mark-previous-like-this)
+        ( "C-c C-<" . mc/mark-all-like-this)
+        ( "C-;" . mc/mark-all-dwim)))
+#+END_SRC
+
+* Git
+
+** magit
+#+BEGIN_SRC emacs-lisp
+(my-use-package magit
+  :config
+  (add-hook 'magit-mode-hook 'magit-load-config-extensions)
+  ;; Set defaults used by specific operations.
+  (setq magit-merge-arguments '("--no-ff"))
+  (setq magit-pull-arguments '("--rebase"))
+  (setq magit-cherry-pick-arguments '("-x")))
+
+(global-set-key ( kbd "C-x g") #'magit-status)
+(global-set-key ( kbd "C-c h") #'magit-log-buffer-file)
+#+END_SRC
+
+
+
+
+** Turn on smerge-mode when opening a file with the markers in them.
+#+BEGIN_SRC emacs-lisp
+(defun sm-try-smerge ()
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward "^<<<<<<< " nil t)
+      (smerge-mode 1))))
+
+
+(add-hook 'find-file-hook #'sm-try-smerge t)
+(add-hook 'smerge-mode-hook
+      (lambda ()
+        (local-set-key (kbd "M-RET") #'smerge-keep-current)
+        (local-set-key (kbd "M-a") #'smerge-keep-all)
+        (local-set-key (kbd "M-n") #'smerge-next)
+        (local-set-key (kbd "M-p") #'smerge-prev)))
+#+END_SRC
 
 * Writing
 
@@ -264,21 +354,79 @@ Remember you may have to install aspell
 #+end_src
 
 
+* org-mode
+
+#+BEGIN_SRC emacs-lisp
+(my-use-package org
+  :config
+  (setq org-log-done t)
+  ;; Yes it's long... but more is better ;)
+  (defvar org-clock-history-length 35)
+  ;; Resume clocking task on clock-in if the clock is open
+  (defvar org-clock-in-resume t)
+  ;;Change task state to STARTED when clocking in
+  (defvar org-clock-in-switch-to-state "STARTED")
+  ;; Doing
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "STARTED(s!)" "|" "ABORTED(a@)" "DONE(d@/!)")))
+  ;; writing hooks
+  (add-hook 'org-mode-hook 'auto-fill-mode t)
+  (add-hook 'org-mode-hook 'flyspell-mode t)
+  ;; Capture notes
+  (defvar jtp-inbox (concat org-directory "/todo.org"))
+  (defvar org-default-notes-file jtp-inbox)
+  ;; Templates
+  (defvar org-capture-templates
+    '(("t" "Todo" entry (file+headline jtp-inbox "Inbox")
+       "* TODO %?\n  %i\n  %a")
+      ("f" "Follow up" entry (file+headline jtp-inbox "Tasks")
+       "* TODO Follow up on: %?\n  DEADLINE: %^t")
+      ("m" "Meeting" entry (file+headline jtp-inbox "Meetings")
+       "* TODO %?\n  SCHEDULED: %^T")))
+  ;; Export to confluence
+  (require 'ox-confluence)
+  (require 'ox-reveal)
+  (setq org-confirm-babel-evaluate nil)
+  (setq org-plantuml-jar-path "~/plantuml.jar")
+
+  :bind
+  (("\C-ca" . org-agenda)
+   ("\C-ce" . export-tangle)
+   ("\C-cc" . org-capture)))
+#+END_SRC
+
+** Reveal 
+#+BEGIN_SRC emacs-lisp
+(my-use-package ox-reveal)
+#+END_SRC
+
+** Tangling
+
+#+BEGIN_SRC emacs-lisp
+(defun export-tangle ()
+  "Shortcut for exporting and tangling the current org-mode buffer."
+  (interactive)
+  (org-gfm-export-to-markdown)
+  (org-babel-tangle))
+#+END_SRC
+
 
 * Programming
 
 ** Compile / Error key bindings
 #+begin_src emacs-lisp
 
-(global-set-key [(C-f5)] 'compile)
-(global-set-key [(f5)] 'recompile)
-(global-set-key [(f6)] 'next-error)
-(global-set-key [(C-f6)] 'flycheck-next-error)
+(global-set-key [(C-f5)] #'compile)
+(global-set-key [(f5)] #'recompile)
+(global-set-key [(f6)] #'next-error)
+(global-set-key [(C-f6)] #'flycheck-next-error)
 
 (add-hook 'prog-mode-hook
           (lambda ()
             (local-set-key "\C-c\C-c" 'recompile)
             (local-set-key "\C-c\C-f" 'next-error)))
+
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
 #+end_src
 
 
@@ -297,6 +445,21 @@ compilation buffer. But it should be ok, for now..
 (my-use-package ansi-color
   :hook (compilation-filter . ansi-color-compilation-filter)) 
 #+end_src
+
+** YAS 
+#+BEGIN_SRC emacs-lisp
+(my-use-package yasnippet
+  :ensure t
+  :config
+  (defconst yas-dir (concat user-emacs-directory "snippets"))
+  ;; Add local snippets to override some of the defaults in elpa folder.
+  (add-to-list 'yas-snippet-dirs yas-dir)
+  (yas-global-mode 1))
+
+(my-use-package yasnippet-snippets)
+#+END_SRC
+
+
 
 
 ** eglot
@@ -374,25 +537,35 @@ compilation buffer. But it should be ok, for now..
 
 ;; load the clang-format module
 (my-use-package clang-format
-  :ensure t
   :config
   (add-hook 'c++-mode-hook (lambda ()
                            (define-key c++-mode-map (kbd "f7") 'clang-format-dwim))))
 #+end_src
 ** Yaml
 #+begin_src emacs-lisp
-(use-package yaml-mode
+(my-use-package yaml-mode
   :config
   (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode)))
 
-(use-package flymake-yamllint
-  :ensure t
+(my-use-package flymake-yamllint
   :config
   (add-hook 'yaml-mode-hook 'flymake-yamllint-setup)
   (add-hook 'yaml-mode-hook 'flymake-mode))
 #+end_src
-
-
+** plantuml
+#+BEGIN_SRC emacs-lisp
+(my-use-package plantuml-mode
+  :config
+  (autoload 'plantuml-mode "plantuml-mode" "A mode for editing plantuml code." t)
+  (add-to-list 'auto-mode-alist '("\\.uml\\'" . plantuml-mode))
+  (add-to-list 'auto-mode-alist '("\\.puml\\'" . plantuml-mode))
+  (setq plantuml-jar-path "~/plantuml.jar")
+  (setq plantuml-output-type "png")
+  (setq plantuml-default-exec-mode 'jar)
+  (add-hook 'plantuml-mode-hook
+          (lambda ()
+            (local-set-key "\C-c\C-c" 'plantuml-preview))))
+#+END_SRC
 
 (my-use-package git-timemachine)
 
@@ -405,12 +578,28 @@ compilation buffer. But it should be ok, for now..
   :init (setq markdown-command "multimarkdown"))
 #+END_SRC
 
+;This library implements a Markdown back-end (github flavor) for Org exporter, based on the `md'
+;back-end.
+#+BEGIN_SRC emacs-lisp
+(my-use-package ox-gfm)
+#+END_SRC
+
 ** Docker
 #+BEGIN_SRC emacs-lisp
 (my-use-package dockerfile-mode)
 #+END_SRC
 
 
+** CMake
+
+#+BEGIN_SRC emacs-lisp
+(my-use-package cmake-mode
+  :config
+  (setq auto-mode-alist
+        (append '(("CMakeLists\\.txt\\'" . cmake-mode)
+                  ("\\.cmake\\'" . cmake-mode))
+                auto-mode-alist)))
+#+END_SRC
 
 * Helper functions
 

@@ -247,7 +247,7 @@
   :ensure t
   :config
   (add-hook 'c++-mode-hook (lambda ()
-                           (define-key c++-mode-map (kbd "C-M-<tab>") 'clang-format-dwim))))
+                           (define-key c++-mode-map (kbd "f7") 'clang-format-dwim))))
 
 
 ;; Open .h/.cc files in c++ mode.
@@ -607,15 +607,14 @@
 				      "--completion-style=detailed"
 				      "--pch-storage=memory"
 				      "--header-insertion=never"
-				      "--header-insertion-decorators=0")))) 
+				      "--header-insertion-decorators=0"))))
+	       ;; ((rust-ts-mode rust-mode) .
+	       ;; 	("rust-analyzer" :initializationOptions (:check (:command "clippy"))))))
 (add-hook 'c-mode-hook #'eglot-ensure)
 (add-hook 'c++-mode-hook #'eglot-ensure)
 
 (add-hook 'rust-mode-hook 'eglot-ensure)
-(add-to-list 'eglot-server-programs
-             '((rust-ts-mode rust-mode) .
-               ("rust-analyzer" :initializationOptions (:check (:command "clippy")))))
-
+(setq rust-format-on-save t)
 
 (use-package eldoc-box
   :ensure t
@@ -648,5 +647,5 @@
 ;back-end.
 (use-package ox-gfm
   :ensure t)
-  
+
 ;;; init.el ends here

@@ -32,12 +32,16 @@
 ;; Show current buffer size
 (size-indication-mode t)
 
+(setq gc-cons-threshold 100000000)
+(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 800000)))
+
 
 ;; set a default font
 (set-face-attribute 'default nil :font "DejaVu Sans Mono" :height (pcase system-type
                                                                     ('gnu/linux 110)
                                                                     ('darwin 130)) :weight 'normal)
 
+(setq native-comp-eln-load-path (list (concat user-emacs-directory "eln-cache/")))
 (load-library (concat user-emacs-directory "local-setup.el"))
 
 ;;a clock
@@ -195,7 +199,6 @@
 (setq package-archives
       '(("gnu" . "http://elpa.gnu.org/packages/")
         ("melpa" . "http://melpa.org/packages/")))
-(package-initialize)
 
 
 (defun require-package (package)
@@ -439,7 +442,7 @@
   (setq projectile-enable-caching 'native)
   (setq projectile-file-exists-remote-cache-expire (* 10 60))
   :config
-  (projectile-global-mode)
+  (projectile-mode +1)
   )
 
 (use-package helm-projectile

@@ -43,6 +43,13 @@ machine that i am using.
 (load-library (concat user-emacs-directory "local-setup.el"))  
 #+end_src
 
+
+** Customisations
+#+begin_src emacs-lisp
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(load custom-file 'noerror 'nomessage)
+#+end_src
+
 * Packages setup
 
 #+begin_src emacs-lisp
@@ -88,7 +95,6 @@ Forwards ARGS to `use-package`."
        ,@args)))
 
 #+end_src
-
 
 * UI 
 
@@ -166,7 +172,6 @@ Forwards ARGS to `use-package`."
 #+END_SRC
 
 * Finding files
-
 
 * Viewing files
 
@@ -304,6 +309,10 @@ I am not sure that this really works..
 (global-set-key ( kbd "C-c h") #'magit-log-buffer-file)
 #+END_SRC
 
+** Browse git history
+#+begin_src emacs-lisp
+(my-use-package git-timemachine)
+#+end_src
 
 
 
@@ -352,7 +361,6 @@ Remember you may have to install aspell
   (interactive)
   (ispell-change-dictionary "english"))
 #+end_src
-
 
 * org-mode
 
@@ -409,7 +417,6 @@ Remember you may have to install aspell
   (org-gfm-export-to-markdown)
   (org-babel-tangle))
 #+END_SRC
-
 
 * Programming
 
@@ -567,8 +574,6 @@ compilation buffer. But it should be ok, for now..
             (local-set-key "\C-c\C-c" 'plantuml-preview))))
 #+END_SRC
 
-(my-use-package git-timemachine)
-
 ** Markdown
 [[https://jblevins.org/projects/markdown-mode/][https://jblevins.org/projects/markdown-mode/]]
 
@@ -600,6 +605,143 @@ compilation buffer. But it should be ok, for now..
                   ("\\.cmake\\'" . cmake-mode))
                 auto-mode-alist)))
 #+END_SRC
+
+* Completion
+
+** company
+#+begin_src emacs-lisp
+(my-use-package-startup company
+  :config
+  (setq company-idle-delay 0.3)
+  (global-company-mode 1)
+  (global-set-key (kbd "C-<tab>") 'company-complete))
+#+end_src
+
+
+** IVY, Counsel, and Swiper Configuration
+ Ensure Ivy and Counsel are installed
+
+#+begin_src emacs-lisp
+(my-use-package ivy
+  :diminish (ivy-mode)
+  :config
+  (ivy-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-count-format "(%d/%d) ")
+  (setq enable-recursive-minibuffers t)
+  :bind (
+         ("M-x" . counsel-M-x)
+         ("C-x b" . ivy-switch-buffer)
+         ("M-y" . counsel-yank-pop)
+         ("C-c r" . counsel-recentf)))
+#+end_src
+
+
+** Prevent Ivy from Auto-Connecting to TRAMP Paths
+
+#+begin_src emacs-lisp
+(defun my-prevent-tramp-auto-connection (orig-fun &rest args)
+  "Advice to prevent automatic TRAMP connection unless explicitly selected."
+  (let ((default-directory "/"))
+    (apply orig-fun args)))
+
+;; Apply the advice to `ivy-switch-buffer` and `counsel-recentf`
+(advice-add 'ivy-switch-buffer :around #'my-prevent-tramp-auto-connection)
+(advice-add 'counsel-recentf :around #'my-prevent-tramp-auto-connection)
+
+;; Optionally, use this advice on other functions if needed
+#+end_src
+
+- The `my-prevent-tramp-auto-connection` function temporarily sets the `default-directory` to `/`, which prevents TRAMP from trying to connect when listing buffers or files.
+- This advice wraps around `ivy-switch-buffer` and `counsel-recentf`, ensuring TRAMP connections are not initiated until you explicitly select a remote buffer or file.
+- Once a TRAMP path is selected and confirmed, the connection will be made as expected.
+
+This approach allows you to see and choose remote files without triggering connections during the buffer or recent file switch operation.
+
+
+** Counsel Configuration
+Counsel configuration for extended commands
+
+#+begin_src emacs-lisp
+(my-use-package counsel
+  :bind (("C-x r" . counsel-recentf)
+         ("C-x C-f" . counsel-find-file)
+         ("C-c k" . counsel-rg)
+         ("C-c j" . counsel-ag)))
+#+end_src
+
+** Swiper for Search
+
+Swiper for search
+
+#+begin_src emacs-lisp
+(my-use-package swiper
+  :bind (("C-s" . swiper)
+         ("C-c C-r" . ivy-resume)))
+#+end_src
+
+*** Start search using current word
+#+begin_src emacs-lisp
+(defun my-swiper-isearch-with-word-at-point ()
+  "Start `swiper-isearch` with the current word under the cursor."
+  (interactive)
+  (let ((current-word (thing-at-point 'word t)))
+    (swiper-isearch current-word)))
+
+;; Bind this function to a key
+(global-set-key (kbd "M-i") 'my-swiper-isearch-with-word-at-point)
+#+end_src
+
+
+** Ivy-Xref for Tag Navigation
+
+Ivy-Xref for better tag navigation
+#+begin_src emacs-lisp
+(my-use-package ivy-xref
+  :config
+  (setq xref-show-definitions-function #'ivy-xref-show-defs)
+  (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
+#+end_src
+
+** Xref Configuration for Code Navigation
+
+Configure for code navigation (xref)
+
+#+begin_src emacs-lisp
+
+(my-use-package xref
+  :bind (("M-." . xref-find-definitions)
+         ("M-," . xref-pop-marker-stack)
+         ("M-?" . xref-find-references)))
+#+end_src
+
+** Avy for Quick Navigation
+
+#+begin_src emacs-lisp
+;; Replace helm-swoop with avy for quick navigation
+(my-use-package avy
+  :bind (("M-I" . avy-goto-char)
+         ("C-c M-i" . avy-goto-word-1)
+         ("C-x M-i" . avy-goto-line)))
+#+end_src
+
+** Additional Ivy Customization
+
+Optional: Ivy settings for faster navigation
+
+#+begin_src emacs-lisp
+(setq ivy-re-builders-alist
+      '((swiper . ivy--regex-plus)
+        (t . ivy--regex-fuzzy)))
+
+;; Additional Ivy options
+(setq ivy-initial-inputs-alist nil)
+(setq ivy-wrap t)
+#+end_src
+
+
+
+
 
 * Helper functions
 

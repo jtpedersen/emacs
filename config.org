@@ -9,10 +9,10 @@
 ** Paths
 
 #+begin_src emacs-lisp
-(setq native-comp-eln-load-path (list (concat user-emacs-directory "eln-cache/")))
-(add-to-list 'load-path (concat user-emacs-directory "/lisp"))
-(setq temporary-file-directory (concat user-emacs-directory "/tmp/"))
-(defvar backup-dir (concat user-emacs-directory "/backups"))
+(setq native-comp-eln-load-path (list (concat user-emacs-directory "eln-cache")))
+(add-to-list 'load-path (expand-file-name "." (concat user-emacs-directory "lisp")))
+(setq temporary-file-directory (concat user-emacs-directory "tmp"))
+(defvar backup-dir (expand-file-name "." (concat user-emacs-directory "backups")))
 (unless (file-exists-p backup-dir)
   (make-directory backup-dir))
 
@@ -391,16 +391,14 @@ Remember you may have to install aspell
        "* TODO Follow up on: %?\n  DEADLINE: %^t")
       ("m" "Meeting" entry (file+headline jtp-inbox "Meetings")
        "* TODO %?\n  SCHEDULED: %^T")))
-  ;; Export to confluence
-  (require 'ox-confluence)
-  (require 'ox-reveal)
-  (setq org-confirm-babel-evaluate nil)
   (setq org-plantuml-jar-path "~/plantuml.jar")
-
   :bind
   (("\C-ca" . org-agenda)
    ("\C-ce" . export-tangle)
    ("\C-cc" . org-capture)))
+
+;; fontify code in code blocks
+(setq org-src-fontify-natively t)
 #+END_SRC
 
 ** Reveal 
@@ -422,7 +420,6 @@ Remember you may have to install aspell
 
 ** Compile / Error key bindings
 #+begin_src emacs-lisp
-
 (global-set-key [(C-f5)] #'compile)
 (global-set-key [(f5)] #'recompile)
 (global-set-key [(f6)] #'next-error)
@@ -455,8 +452,7 @@ compilation buffer. But it should be ok, for now..
 
 ** YAS 
 #+BEGIN_SRC emacs-lisp
-(my-use-package yasnippet
-  :ensure t
+(my-use-package-startup yasnippet
   :config
   (defconst yas-dir (concat user-emacs-directory "snippets"))
   ;; Add local snippets to override some of the defaults in elpa folder.
@@ -467,12 +463,14 @@ compilation buffer. But it should be ok, for now..
 #+END_SRC
 
 
-
-
 ** eglot
 
+Ensure eglot is installed and configured
+
 #+begin_src emacs-lisp
-(with-eval-after-load 'eglot
+(my-use-package-startup eglot
+  :config
+  (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs 
 	       '((c-mode c++-mode) . ("clangd" "-j=8"
 				      "--log=error"
@@ -483,14 +481,22 @@ compilation buffer. But it should be ok, for now..
 				      "--completion-style=detailed"
 				      "--pch-storage=memory"
 				      "--header-insertion=never"
-				      "--header-insertion-decorators=0"))))
+				      "--header-insertion-decorators=0"))
+	       '((python-mode . ("pyright")))))
+  :bind (
+         ("M-." . xref-find-definitions)   ;; Jump to declaration/definition
+         ("M-," . xref-pop-marker-stack)   ;; Jump back to previous position
+         ("M-?" . xref-find-references)))  ;; Find references to symbol at point
+
 
 (add-hook 'c-mode-hook #'eglot-ensure)
 (add-hook 'c++-mode-hook #'eglot-ensure)
 (add-hook 'rust-mode-hook #'eglot-ensure)
+(add-hook 'python-mode #'eglot-ensure)
+(add-hook 'org-mode #'eglot-ensure)
+(add-hook 'lisp-mode #'eglot-ensure)
 
-(my-use-package eldoc-box
-  :ensure t
+(my-use-package-startup eldoc-box
   :config
   (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t))
 
@@ -670,6 +676,15 @@ Counsel configuration for extended commands
          ("C-c j" . counsel-ag)))
 #+end_src
 
+** smex
+
+  Need to sort the counsel/ivy lists
+
+#+begin_src lisp
+(my-use-package-startup smex)
+#+end_src
+
+
 ** Swiper for Search
 
 Swiper for search
@@ -707,13 +722,12 @@ Ivy-Xref for better tag navigation
 
 Configure for code navigation (xref)
 
-#+begin_src emacs-lisp
-
-(my-use-package xref
-  :bind (("M-." . xref-find-definitions)
-         ("M-," . xref-pop-marker-stack)
-         ("M-?" . xref-find-references)))
-#+end_src
+# #+begin_src emacs-lisp
+# (my-use-package xref
+#   :bind (("M-." . xref-find-definitions)
+#          ("M-," . xref-pop-marker-stack)
+#          ("M-?" . xref-find-references)))
+# #+end_src
 
 ** Avy for Quick Navigation
 
@@ -763,5 +777,12 @@ Optional: Ivy settings for faster navigation
   (setq buffer-display-table (make-display-table))
   (aset buffer-display-table ?\^M []))
 (add-hook 'prog-mode-hook 'remove-dos-eol)
+#+end_src
+
+
+* Machine Learning
+
+#+begin_src lisp
+(my-use-package chatgpt-shell)
 #+end_src
 

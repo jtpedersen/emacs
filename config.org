@@ -237,6 +237,7 @@ Save all backups and auto-saves to a temporary directory. And clean it for all f
   (setq projectile-mode-line "ρ")
   (setq projectile-enable-caching 'native)
   (setq projectile-file-exists-remote-cache-expire (* 10 60))
+  (setq projectile-indexing-method 'alien)
   :config
   (projectile-mode +1)
   )

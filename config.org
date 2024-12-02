@@ -538,23 +538,7 @@ Ensure eglot is installed and configured
       (insert (concat "#endif // " guard ))
       (newline))))
 #+end_src
-***  clang-format
-#+begin_src emacs-lisp
-(defun clang-format-dwim ()
-  "Perform clang-format on region or buffer."
-  (interactive)
-  (save-excursion
-    (if (region-active-p)
-        (clang-format-region (region-beginning) (region-end))
-      (clang-format-buffer))))
 
-
-;; load the clang-format module
-(my-use-package clang-format
-  :config
-  (add-hook 'c++-mode-hook (lambda ()
-                           (define-key c++-mode-map (kbd "f7") 'clang-format-dwim))))
-#+end_src
 ** Yaml
 #+begin_src emacs-lisp
 (my-use-package yaml-mode
@@ -612,6 +596,15 @@ Ensure eglot is installed and configured
                   ("\\.cmake\\'" . cmake-mode))
                 auto-mode-alist)))
 #+END_SRC
+
+** Formatting
+#+begin_src emacs-lisp
+(my-use-package-startup format-all
+  :config
+  (setq-default format-all-formatters
+                '(("C++"     (clang-format))))
+  (global-set-key (kbd "<f7>") 'format-all-buffer))
+#+end_src
 
 * Completion
 

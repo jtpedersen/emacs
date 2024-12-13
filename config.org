@@ -618,11 +618,32 @@ Ensure eglot is installed and configured
 #+end_src
 
 
+
+
 ** IVY, Counsel, and Swiper Configuration
  Ensure Ivy and Counsel are installed
 
+*** Counsel Configuration
+Counsel configuration for extended commands
+
 #+begin_src emacs-lisp
-(my-use-package ivy
+(my-use-package-startup counsel
+  :bind (("C-x r" . counsel-recentf)
+         ("C-x C-f" . counsel-find-file)))
+#+end_src
+
+*** smex
+
+  Need to sort the counsel/ivy lists
+
+#+begin_src lisp
+;;(my-use-package-startup smex)
+#+end_src
+
+
+*** IVY 
+#+begin_src emacs-lisp
+(my-use-package-startup ivy
   :diminish (ivy-mode)
   :config
   (ivy-mode 1)
@@ -637,7 +658,7 @@ Ensure eglot is installed and configured
 #+end_src
 
 
-** Prevent Ivy from Auto-Connecting to TRAMP Paths
+*** Prevent Ivy from Auto-Connecting to TRAMP Paths
 
 #+begin_src emacs-lisp
 (defun my-prevent-tramp-auto-connection (orig-fun &rest args)
@@ -658,24 +679,30 @@ Ensure eglot is installed and configured
 
 This approach allows you to see and choose remote files without triggering connections during the buffer or recent file switch operation.
 
-
-** Counsel Configuration
-Counsel configuration for extended commands
+*** History based completions
 
 #+begin_src emacs-lisp
-(my-use-package counsel
-  :bind (("C-x r" . counsel-recentf)
-         ("C-x C-f" . counsel-find-file)
-         ("C-c k" . counsel-rg)
-         ("C-c j" . counsel-ag)))
+(my-use-package-startup ivy-prescient
+			:after counsel
+			:config
+			(ivy-prescient-mode 1))
+;; defaults
+(setq prescient-filter-method '(literal regexp fuzzy))
+;; Remember candidate frequencies across sessions
+(prescient-persist-mode 1)
 #+end_src
 
-** smex
 
-  Need to sort the counsel/ivy lists
+*** Better jumps
 
-#+begin_src lisp
-(my-use-package-startup smex)
+#+begin_src emacs-lisp
+(defun my/counsel-ag-enhanced ()
+  "Run `counsel-ag` with Ivy-powered directory selection and word under point as default input."
+  (interactive)
+  (let* ((default-directory (read-directory-name "Start from directory: "))
+         (default-term (thing-at-point 'symbol t))) 
+    (counsel-ag default-term default-directory "--word-regex")))
+(global-set-key (kbd "C-c j") #'my/counsel-ag-enhanced)
 #+end_src
 
 

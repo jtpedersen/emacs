@@ -434,6 +434,11 @@ Remember you may have to install aspell
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 #+end_src
 
+** Debugger
+#+begin_src emacs-lisp
+(my-use-package realgud)
+#+end_src
+
 
 ** Viewing compilation output
 

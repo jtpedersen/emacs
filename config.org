@@ -690,11 +690,9 @@ This approach allows you to see and choose remote files without triggering conne
 (my-use-package-startup ivy-prescient
 			:after counsel
 			:config
-			(ivy-prescient-mode 1))
-;; defaults
-(setq prescient-filter-method '(literal regexp fuzzy))
-;; Remember candidate frequencies across sessions
-(prescient-persist-mode 1)
+			(ivy-prescient-mode 1)
+			(prescient-persist-mode 1)
+			(setq prescient-filter-method '(literal regexp fuzzy)))
 #+end_src
 
 
@@ -719,18 +717,9 @@ Swiper for search
 (my-use-package swiper
   :bind (("C-s" . swiper)
          ("C-c C-r" . ivy-resume)))
+(global-set-key (kbd "M-i") 'swiper-isearch-thing-at-point)
 #+end_src
-
-*** Start search using current word
-#+begin_src emacs-lisp
-(defun my-swiper-isearch-with-word-at-point ()
-  "Start `swiper-isearch` with the current word under the cursor."
-  (interactive)
-  (let ((current-word (thing-at-point 'word t)))
-    (swiper-isearch current-word)))
-
-;; Bind this function to a key
-(global-set-key (kbd "M-i") 'my-swiper-isearch-with-word-at-point)
+		
 #+end_src
 
 

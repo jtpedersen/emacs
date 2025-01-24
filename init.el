@@ -1,4 +1,4 @@
-(setq debug-on-error t)
+;(setq debug-on-error t)
 
 ;; Ensure Org-mode and Babel are loaded
 (require 'org)

@@ -404,7 +404,7 @@ Remember you may have to install aspell
 
 ** Reveal 
 #+BEGIN_SRC emacs-lisp
-(my-use-package ox-reveal)
+(my-use-package-startup ox-reveal)
 #+END_SRC
 
 ** Tangling
@@ -717,9 +717,7 @@ Swiper for search
 (my-use-package swiper
   :bind (("C-s" . swiper)
          ("C-c C-r" . ivy-resume)))
-(global-set-key (kbd "M-i") 'swiper-isearch-thing-at-point)
-#+end_src
-		
+  (global-set-key (kbd "M-i") 'swiper-isearch-thing-at-point)
 #+end_src
 
 
@@ -800,4 +798,3 @@ Optional: Ivy settings for faster navigation
 #+begin_src lisp
 (my-use-package chatgpt-shell)
 #+end_src
-

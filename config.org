@@ -283,6 +283,23 @@ I am not sure that this really works..
 #+end_src
 
 
+*** Edit as root
+#+begin_src emacs-lisp
+(defun er-sudo-edit (&optional arg)
+  "Edit currently visited file as root.
+
+With a prefix ARG prompt for a file to visit.
+Will also prompt for a file to visit if current
+buffer is not visiting a file."
+  (interactive "P")
+  (if (or arg (not buffer-file-name))
+      (find-file (concat "/sudo:root@localhost:"
+                         (ido-read-file-name "Find file(as root): ")))
+    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
+(global-set-key (kbd "C-x C-r") #'er-sudo-edit)
+
+#+end_src
+
 
 ** Mulitple cursors
 #+BEGIN_SRC emacs-lisp

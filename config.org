@@ -587,19 +587,30 @@ Ensure eglot is installed and configured
             (local-set-key "\C-c\C-c" 'plantuml-preview))))
 #+END_SRC
 
+** Work break down
+#+BEGIN_SRC emacs-lisp
+(require 'org-wbs)
+
+#+END_SRC
+
+#+RESULTS:
+: org-wbs
+
+
+
 ** Markdown
 [[https://jblevins.org/projects/markdown-mode/][https://jblevins.org/projects/markdown-mode/]]
 
 #+BEGIN_SRC emacs-lisp
-(my-use-package markdown-mode
+(my-use-package-startup markdown-mode
   :mode ("README\\.md\\'" . gfm-mode)
   :init (setq markdown-command "multimarkdown"))
 #+END_SRC
 
-;This library implements a Markdown back-end (github flavor) for Org exporter, based on the `md'
-;back-end.
+This library implements a Markdown back-end (github flavor) for Org exporter, based on the `md'
+back-end.
 #+BEGIN_SRC emacs-lisp
-(my-use-package ox-gfm)
+(my-use-package-startup ox-gfm)
 #+END_SRC
 
 ** Docker

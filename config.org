@@ -434,6 +434,33 @@ Remember you may have to install aspell
   (org-babel-tangle))
 #+END_SRC
 
+** Evaluating shells
+
+In order to start a terminal and interact with it during development
+use [[https://github.com/ahendriksen/ob-tmux][ob-tmux]] to create tmux sessions
+
+#+begin_src emacs-lisp
+(my-use-package ob-tmux
+  ;; Install package automatically (optional)
+  :custom
+  (org-babel-default-header-args:tmux
+   '((:results . "silent")	;
+     (:session . "default")	; The default tmux session to send code to
+     (:socket  . nil)))		; The default tmux socket to communicate with
+  ;; The tmux sessions are prefixed with the following string.
+  ;; You can customize this if you like.
+  (org-babel-tmux-session-prefix "ob-")
+  ;; The terminal that will be used.
+  ;; You can also customize the options passed to the terminal.
+  ;; The default terminal is "gnome-terminal" with options "--".
+  (org-babel-tmux-terminal "xterm")
+  (org-babel-tmux-terminal-opts '("-T" "ob-tmux" "-e"))
+  ;; Finally, if your tmux is not in your $PATH for whatever reason, you
+  ;; may set the path to the tmux binary as follows:
+  (org-babel-tmux-location "/usr/bin/tmux"))
+#+end_src
+
+
 * Programming
 
 ** Compile / Error key bindings
@@ -719,8 +746,8 @@ This approach allows you to see and choose remote files without triggering conne
 			:after counsel
 			:config
 			(ivy-prescient-mode 1)
-			(prescient-persist-mode 1)
-			(setq prescient-filter-method '(literal regexp fuzzy)))
+			(setq prescient-filter-method '(literal regexp fuzzy))
+			(prescient-persist-mode 1))
 #+end_src
 
 
@@ -823,6 +850,32 @@ Optional: Ivy settings for faster navigation
 
 * Machine Learning
 
+** Chatgpt shell 
 #+begin_src lisp
 (my-use-package chatgpt-shell)
 #+end_src
+
+** aider
+
+#+begin_src emacs-lisp
+;; (package-vc-install '(aider :url "https://github.com/tninja/aider.el" :branch "master" :main-file "aider.el"))
+(use-package aider
+  :config
+  ;; Use claude-3-5-sonnet cause it is best in aider benchmark
+  (setq aider-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
+  (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
+  ;; Or use chatgpt model since it is most well known
+  ;(setq aider-args '("--model" "o3-mini"))
+  ;(setenv "OPENAI_API_KEY" chatgpt-shell-openai-key)
+  ;; Or use gemini v2 model since it is very good and free
+  ;; (setq aider-args '("--model" "gemini/gemini-exp-1206"))
+  ;; (setenv "GEMINI_API_KEY" <your-gemini-api-key>)
+  ;; Or use your personal config file
+  ;; (setq aider-args `("--config" ,(expand-file-name "~/.aider.conf.yml")))
+  ;; ;;
+  ;; Optional: Set a key binding for the transient menu
+  (global-set-key (kbd "C-c a") 'aider-transient-menu))
+;;;###autoload
+(defalias 'aider-read-string 'aider-plain-read-string)
+#+end_src
+

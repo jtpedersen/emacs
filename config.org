@@ -4,8 +4,6 @@
 
 * Core Settings
 
-
-
 ** Paths
 
 #+begin_src emacs-lisp
@@ -138,7 +136,6 @@ Forwards ARGS to `use-package`."
 (global-set-key (kbd "C--") 'text-scale-decrease)
 (global-set-key (kbd "C-0") 'text-scale-adjust)
 #+end_src
-
 
 ** Nice behavioral tweaks
 #+begin_src emacs-lisp
@@ -586,6 +583,13 @@ Ensure eglot is installed and configured
       (newline)
       (insert (concat "#endif // " guard ))
       (newline))))
+#+end_src
+
+** Rust
+#+begin_src emacs-lisp
+(my-use-package rust-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode)))
 #+end_src
 
 ** Yaml

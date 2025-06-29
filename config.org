@@ -863,23 +863,37 @@ Optional: Ivy settings for faster navigation
 
 #+begin_src emacs-lisp
 ;; (package-vc-install '(aider :url "https://github.com/tninja/aider.el" :branch "master" :main-file "aider.el"))
-(use-package aider
-  :config
-  ;; Use claude-3-5-sonnet cause it is best in aider benchmark
-  (setq aider-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
-  (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
-  ;; Or use chatgpt model since it is most well known
-  ;(setq aider-args '("--model" "o3-mini"))
-  ;(setenv "OPENAI_API_KEY" chatgpt-shell-openai-key)
-  ;; Or use gemini v2 model since it is very good and free
-  ;; (setq aider-args '("--model" "gemini/gemini-exp-1206"))
-  ;; (setenv "GEMINI_API_KEY" <your-gemini-api-key>)
-  ;; Or use your personal config file
-  ;; (setq aider-args `("--config" ,(expand-file-name "~/.aider.conf.yml")))
-  ;; ;;
-  ;; Optional: Set a key binding for the transient menu
-  (global-set-key (kbd "C-c a") 'aider-transient-menu))
-;;;###autoload
-(defalias 'aider-read-string 'aider-plain-read-string)
+;; (use-package aider
+;;   :config
+;;   ;; Use claude-3-5-sonnet cause it is best in aider benchmark
+;;   (setq aider-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
+;;   (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
+;;   ;; Or use chatgpt model since it is most well known
+;;   ;(setq aider-args '("--model" "o3-mini"))
+;;   ;(setenv "OPENAI_API_KEY" chatgpt-shell-openai-key)
+;;   ;; Or use gemini v2 model since it is very good and free
+;;   ;; (setq aider-args '("--model" "gemini/gemini-exp-1206"))
+;;   ;; (setenv "GEMINI_API_KEY" <your-gemini-api-key>)
+;;   ;; Or use your personal config file
+;;   ;; (setq aider-args `("--config" ,(expand-file-name "~/.aider.conf.yml")))
+;;   ;; ;;
+;;   ;; Optional: Set a key binding for the transient menu
+;;   (global-set-key (kbd "C-c a") 'aider-transient-menu))
+;; ;;;###autoload
+;; (defalias 'aider-read-string 'aider-plain-read-string)
 #+end_src
+
+
+#+begin_src emacs-lisp
+  (use-package aidermacs
+  :bind (("C-c a" . aidermacs-transient-menu))
+  :config
+  ; Set API_KEY in .bashrc, that will automatically picked up by aider or in elisp
+  (setenv "GEMINI_API_KEY" gemini-api-key)
+  :custom
+  ; See the Configuration section below
+  (aidermacs-default-chat-mode 'architect)
+  (aidermacs-default-model "gemini"))
+#+end_src
+
 
